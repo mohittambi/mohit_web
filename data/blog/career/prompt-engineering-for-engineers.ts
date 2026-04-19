@@ -6,7 +6,7 @@ export const careerArtifacts: CareerArtifacts = {
   strongVisual:
     "CI graph: eval pass rate cliff after model version bump; second line after schema validation + pin.",
   linkedInThread: [
-    "On AWS Bedrock you still swap models behind one API—keep task specs model-agnostic, put Claude vs Llama prompt packaging in small adapters.",
+    "On AWS Bedrock one API still hides different parsers: keep contracts model-agnostic, then branch adapters—Claude’s XML-style sections vs Llama-style instruction headers and stops.",
     "Prompts are interfaces: JSON schema + server-side parse beats “JSON mode” optimism after a vendor upgrade.",
     "Eval gates need enough volume to be signal; pin models in prod, float in staging, track pass rate like an API SLO.",
     "Anthropic prompt engineering overview (message structure): https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview",

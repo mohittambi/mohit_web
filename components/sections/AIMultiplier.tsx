@@ -12,6 +12,7 @@ import {
   Braces,
 } from "lucide-react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { FlipAxisCard } from "@/components/ui/FlipAxisCard";
 
 const useCases = [
   {
@@ -87,52 +88,27 @@ export function AIMultiplier() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {useCases.map((uc, i) => (
-            <motion.article
+            <motion.div
               key={uc.title}
-              tabIndex={0}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.08 }}
-              className={[
-                "group relative flex min-h-[9.5rem] flex-col rounded-xl border border-[var(--border-color)] bg-[var(--bg)] p-6",
-                "transition-[border-color,box-shadow,transform] duration-300 ease-out",
-                "hover:-translate-y-0.5 hover:border-[var(--accent)]/35 hover:shadow-lg hover:shadow-[var(--accent)]/8",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]",
-                "motion-reduce:hover:translate-y-0 motion-reduce:transition-colors",
-              ].join(" ")}
+              className="min-h-0 transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
             >
-              <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-[var(--accent)]/0 to-[var(--accent)]/0 opacity-0 transition-opacity duration-300 group-hover:from-[var(--accent)]/[0.04] group-hover:to-transparent group-hover:opacity-100 group-focus-within:from-[var(--accent)]/[0.04] group-focus-within:to-transparent group-focus-within:opacity-100 motion-reduce:opacity-0" aria-hidden />
-
-              <div className="relative flex flex-1 flex-col">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--accent)]/10 transition-colors duration-300 group-hover:bg-[var(--accent)]/15">
-                    <uc.icon size={18} className="text-[var(--accent)]" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold leading-snug text-[var(--text)]">{uc.title}</h3>
-                    <p className="mt-1.5 text-[10px] font-medium uppercase tracking-wider text-[var(--muted)] opacity-80 transition-opacity duration-200 group-hover:opacity-0 group-focus-within:opacity-0 [@media(hover:none)]:sr-only motion-reduce:sr-only">
-                      Hover or focus to expand
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  className={[
-                    "grid flex-1 grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none",
-                    "group-hover:grid-rows-[1fr] group-focus-within:grid-rows-[1fr]",
-                    "[@media(hover:none)]:grid-rows-[1fr]",
-                    "motion-reduce:grid-rows-[1fr]",
-                  ].join(" ")}
-                >
-                  <div className="min-h-0 overflow-hidden">
-                    <p className="mt-4 border-t border-[var(--border-color)]/70 pt-4 text-sm leading-relaxed text-[var(--muted)] opacity-0 transition-[opacity,transform] duration-300 ease-out group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:translate-y-0 [@media(hover:none)]:opacity-100 [@media(hover:none)]:translate-y-0 motion-reduce:opacity-100 motion-reduce:translate-y-0 translate-y-1">
-                      {uc.body}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </motion.article>
+              <FlipAxisCard
+                tileLabel={uc.title}
+                front={
+                  <>
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--accent)]/12 ring-1 ring-[var(--accent)]/20">
+                      <uc.icon size={20} className="text-[var(--accent)]" aria-hidden />
+                    </span>
+                    <h3 className="text-balance font-semibold leading-snug text-[var(--text)]">{uc.title}</h3>
+                  </>
+                }
+                back={<p className="text-sm leading-relaxed text-[var(--muted)]">{uc.body}</p>}
+              />
+            </motion.div>
           ))}
         </div>
 

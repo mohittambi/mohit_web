@@ -10,7 +10,7 @@ export const narrativeAppendix: NarrativeAppendix = {
     wrong_first:
       "We published a 47-page standards doc before fixing one golden path—adoption flat; cynicism high.",
     solution:
-      "One service template (Node + TS) with CI, canary, OTel, IAM patterns baked in; voluntary migration with public TTFD metrics; rotation from product eng.",
+      "One service template (Node + TS) with CI, canary, OTel, IAM patterns baked in—**DevEx** as the product: fewer bespoke YAML paths, faster first deploy; voluntary migration with public TTFD metrics; rotation from product eng so platform does not drift into ticket theatre.",
     tradeoff:
       "We accepted long-tail snowflakes living outside the golden path with guardrails, not pretend elimination.",
   },

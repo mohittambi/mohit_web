@@ -373,11 +373,11 @@ Readers need **head vs tail** sampling, **collector** role, cardinality discipli
 - [ ] Tail sampling warns about **memory** / delayed export trade-offs.
 - [ ] “Drop health checks” is justified with **how** to implement safely.
 - [ ] Vendor mentions are optional; concepts stay **portable**.
-- [ ] **Collector vs SDK** stance documented: collector-first for **cost/cardinality** (gateway drops before paid backends); SDK head sampling when **app CPU/egress** dominates; tail sampling at collector for whole-trace view.
+- [x] **Collector vs SDK** stance documented: collector-first for **cost/cardinality** (gateway drops before paid backends); SDK head sampling when **app CPU/egress** dominates; tail sampling at collector for whole-trace view.
 
 ### Editorial validation (Post 4)
 
-**Question:** Focus on collector-side processing (drop spans at the gateway) or SDK-side (sample before export)? **Answer in copy:** both—**primary economic lever at the collector** (trim noise, cap attributes, tail policy before storage); **SDK sampling** when hot paths cannot afford serialising/exporting spans that will be discarded anyway. Avoid “SDK-only” as the sole cost strategy.
+**Question:** Focus on collector-side processing (drop spans at the gateway) or SDK-side (sample before export)? **Answer in copy (live):** both—**primary economic lever at the collector** (trim noise, cap attributes, tail policy before storage); **SDK head sampling** when hot paths cannot afford serialising/exporting spans that will be discarded anyway. Avoid “SDK-only” as the sole cost strategy. See `/blog/opentelemetry-sampling-cost` section **“Collector vs SDK: where to cut first.”**
 
 ---
 
@@ -411,7 +411,7 @@ Position prompts as **interfaces**: schemas (JSON, tools), validators, **few-sho
 - [ ] Does not promise “no hallucinations”; describes **mitigation**.
 - [ ] Few-shot section warns against **leaking PII** from examples.
 - [ ] Testing section names **at least two** measurable signals.
-- [ ] **AWS Bedrock**: **model-agnostic** contracts vs **model-specific** prompt encoding (Claude vs Llama families) called out.
+- [x] **AWS Bedrock**: **model-agnostic** contracts vs **model-specific** prompt encoding (Claude vs Llama families) called out.
 
 ---
 
@@ -541,7 +541,7 @@ Explain partition limits **conceptually** (without claiming numbers that change�
 - [ ] Numeric limits **referenced** to official AWS documentation, not hard-coded forever in prose.
 - [ ] Read amplification of sharding is **acknowledged**.
 - [ ] Includes **test** plan, not only design patterns.
-- [ ] **ABAC** mentioned for tenant isolation story (attributes on principals/resources; avoid policy/tag sprawl).
+- [x] **ABAC** mentioned for tenant isolation story (attributes on principals/resources; avoid policy/tag sprawl).
 
 ---
 
@@ -639,7 +639,7 @@ IDP adoption is **cultural and sequencing**. Golden paths, paved roads, self-ser
 ### Validation checklist
 
 - [ ] Success metrics are **outcome**-based, not feature-count.
-- [ ] **DevEx** angle explicit (TTFD, MTTR, toil)—not “we shipped a portal.”
+- [x] **DevEx** angle explicit (TTFD, MTTR, toil)—not “we shipped a portal.”
 - [ ] Exceptions path exists—**no** “one size fits all” fantasy.
 - [ ] Includes **cost** and **cognitive load** of the platform itself.
 - [ ] Honest about **Kubernetes** optionalism (do not assume K8s everywhere).

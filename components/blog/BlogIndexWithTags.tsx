@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, BookOpen, Columns2, Lightbulb, X } from "lucide-react";
+import { ArrowUpRight, BookOpen, Lightbulb, X } from "lucide-react";
 import type { Article } from "@/data/articles";
 import { Badge } from "@/components/ui/Badge";
 
@@ -20,10 +20,10 @@ type Props = Readonly<{
   articles: Article[];
 }>;
 
-function uniqueTags(sitePosts: BlogListingPost[], articles: Article[]): string[] {
+/** Tags that appear on at least one on-site post (excludes Medium-only labels). */
+function tagsUsedOnSite(sitePosts: BlogListingPost[]): string[] {
   const set = new Set<string>();
   for (const p of sitePosts) for (const t of p.tags) set.add(t);
-  for (const a of articles) for (const t of a.tags) set.add(t);
   return [...set].sort((a, b) => a.localeCompare(b));
 }
 
@@ -33,9 +33,8 @@ function matchesTags(tags: string[], selected: Set<string>): boolean {
 }
 
 export function BlogIndexWithTags({ sitePosts, articles }: Props) {
-  const [tagsOnLeft, setTagsOnLeft] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
-  const allTags = uniqueTags(sitePosts, articles);
+  const filterTags = tagsUsedOnSite(sitePosts);
 
   const filteredSite = sitePosts.filter((p) => matchesTags(p.tags, selected));
   const filteredArticles = articles.filter((a) => matchesTags(a.tags, selected));
@@ -53,61 +52,51 @@ export function BlogIndexWithTags({ sitePosts, articles }: Props) {
     setSelected(new Set());
   }
 
-  const tagPanel = (
-    <aside
-      className="lg:sticky lg:top-28 lg:self-start space-y-4 rounded-xl border border-[var(--border-color)] bg-[var(--surface)] p-5"
-      aria-label="Filter by tag"
-    >
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-semibold uppercase tracking-widest text-[var(--accent)]">Tags</p>
-        <button
-          type="button"
-          onClick={() => setTagsOnLeft((v) => !v)}
-          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-color)] bg-[var(--bg)] px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-[var(--muted)] hover:text-[var(--text)] transition-colors"
-          title={tagsOnLeft ? "Move tag panel to the right" : "Move tag panel to the left"}
-        >
-          <Columns2 size={12} aria-hidden />
-          {tagsOnLeft ? "Right" : "Left"}
-        </button>
-      </div>
-      <p className="text-xs text-[var(--muted)] leading-relaxed">
-        Select one or more tags. Posts match if they have <span className="text-[var(--text)] font-medium">any</span> selected tag.
-      </p>
-      {selected.size > 0 && (
-        <button
-          type="button"
-          onClick={clearTags}
-          className="inline-flex items-center gap-1 text-xs font-medium text-[var(--accent)] hover:text-[var(--accent-hover)]"
-        >
-          <X size={14} aria-hidden />
-          Clear ({selected.size})
-        </button>
-      )}
-      <div className="flex flex-wrap gap-2">
-        {allTags.map((tag) => {
-          const on = selected.has(tag);
-          return (
+  const tagBar =
+    filterTags.length > 0 ? (
+      <div
+        className="rounded-lg border border-[var(--border-color)] bg-[var(--surface)] px-3 py-2 sm:px-4 sm:py-2.5"
+        aria-label="Filter by tag"
+      >
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)] shrink-0">Filter</span>
+          <div className="flex flex-wrap gap-1.5 min-w-0">
+            {filterTags.map((tag) => {
+              const on = selected.has(tag);
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => toggleTag(tag)}
+                  className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] sm:text-xs font-medium leading-tight transition-[color,background-color,border-color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] ${
+                    on
+                      ? "border-[var(--accent)] bg-[var(--accent)] text-white shadow-sm hover:bg-[var(--accent-hover)] hover:border-[var(--accent-hover)]"
+                      : "border-[var(--border-color)] bg-[var(--bg)] text-[var(--text)]/85 hover:bg-[var(--accent-muted)] hover:border-[var(--accent)]/35 hover:text-[var(--accent)]"
+                  }`}
+                  aria-pressed={on}
+                >
+                  {tag}
+                </button>
+              );
+            })}
+          </div>
+          {selected.size > 0 && (
             <button
-              key={tag}
               type="button"
-              onClick={() => toggleTag(tag)}
-              className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors ${
-                on
-                  ? "border-[var(--accent)] bg-[var(--accent)]/15 text-[var(--accent)]"
-                  : "border-[var(--border-color)] bg-[var(--bg)] text-[var(--muted)] hover:border-[var(--accent)]/40 hover:text-[var(--text)]"
-              }`}
-              aria-pressed={on}
+              onClick={clearTags}
+              className="inline-flex items-center gap-0.5 text-[11px] font-medium text-[var(--accent)] hover:text-[var(--accent-hover)] shrink-0 ml-auto"
             >
-              {tag}
+              <X size={12} aria-hidden />
+              Clear
             </button>
-          );
-        })}
+          )}
+        </div>
+        <p className="text-[10px] text-[var(--muted)] mt-1.5 tabular-nums">
+          On-site {filteredSite.length}/{sitePosts.length}
+          {articles.length > 0 ? ` · Medium ${filteredArticles.length}/${articles.length}` : ""}
+        </p>
       </div>
-      <p className="text-[10px] text-[var(--muted)] border-t border-[var(--border-color)] pt-3">
-        On-site: {filteredSite.length}/{sitePosts.length} · Medium: {filteredArticles.length}/{articles.length}
-      </p>
-    </aside>
-  );
+    ) : null;
 
   const mainColumn = (
     <div className="min-w-0 space-y-16">
@@ -235,10 +224,8 @@ export function BlogIndexWithTags({ sitePosts, articles }: Props) {
   );
 
   return (
-    <div
-      className={`flex flex-col gap-8 lg:flex-row lg:items-start ${tagsOnLeft ? "" : "lg:flex-row-reverse"}`}
-    >
-      {tagPanel}
+    <div className="space-y-6 sm:space-y-8">
+      {tagBar}
       {mainColumn}
     </div>
   );

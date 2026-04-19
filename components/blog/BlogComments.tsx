@@ -36,8 +36,8 @@ function EmailCommentForm({ slug, title }: Props) {
   return (
     <form onSubmit={openMailto} className="rounded-xl border border-[var(--border-color)] bg-[var(--surface)] p-6 space-y-4">
       <p className="text-sm text-[var(--muted)] leading-relaxed">
-        Comments on this page use your email app. For public threads with GitHub login, configure Giscus — see{" "}
-        <code className="text-xs bg-[var(--bg)] px-1 rounded">docs/COMMENTS.md</code>.
+        Comments on this page use your email app. For public threads with GitHub sign-in, the site can switch to
+        Giscus once it is configured for this deployment.
       </p>
       <div>
         <label htmlFor="blog-comment" className="block text-sm font-medium text-[var(--text)] mb-2">

@@ -15,11 +15,11 @@ export const post: BlogPost = {
     },
     {
       kind: "h2",
-      text: "Collector-first vs SDK-first (validation)",
+      text: "Collector vs SDK: where to cut first",
     },
     {
       kind: "p",
-      text: "For **cost and cardinality**, I bias toward **collector-side** processing: drop health checks, strip high-cardinality attributes, apply tail policies, and fan-in from many agents before spans hit a paid backend—think of the collector as a **gateway** that protects your bill. For **application CPU and egress**, a **modest SDK head sample** (consistent parent-based) still belongs close to the process so you are not serialising and exporting spans you already know you will discard. The split is not religious: use SDK sampling when hot paths cannot afford export volume; use collector transforms when the economics of storage and query dominate. Tail sampling almost always belongs at the collector where it can see the whole trace.",
+      text: "**Planned emphasis for this article:** start with **collector-side** drops and transforms when the problem is **bill, cardinality, or backend query latency**—health checks stripped, attributes trimmed, tail policies applied, fan-in before a paid gateway—because that is where noise aggregates across services. Add **SDK-side** (consistent parent-based) head sampling when **application CPU or egress** on the hot path dominates: do not serialise and export spans you already know you will discard. Tail sampling almost always belongs at the **collector** so policy sees the **whole trace**; pair both layers deliberately rather than fixing cost only in the SDK while ignoring the pipeline.",
     },
     {
       kind: "h2",

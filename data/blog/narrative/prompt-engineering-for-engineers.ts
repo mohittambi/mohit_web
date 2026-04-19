@@ -10,7 +10,7 @@ export const narrativeAppendix: NarrativeAppendix = {
     wrong_first:
       "We added more few-shot examples (12 → 28) instead of tightening schema validation and pinning—latency rose ~40% and cost followed.",
     solution:
-      "Pinned model for releases, nightly float in staging; server-side validators; model-agnostic task specs with per-family prompt adapters (Claude sectioning vs Llama instruction headers); smaller few-shot with adversarial negatives; rubric scoring for fuzzy fields.",
+      "Pinned model for releases, nightly float in staging; server-side validators; **model-agnostic** task specs (schema, rubric, neutral user text) with **model-specific** Bedrock adapters—**Claude** tuned on XML-style section tags and role boundaries; **Llama** families on different message headers, stop tokens, and BOS/EOS habits—smaller few-shot with adversarial negatives; rubric scoring for fuzzy fields.",
     tradeoff:
       "We accepted slower iteration for prompt tweakers—PR + eval gate became non-negotiable for production-bound templates.",
   },

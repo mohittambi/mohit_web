@@ -45,7 +45,8 @@ export default function BlogPage() {
           <p className="text-xs font-semibold uppercase tracking-widest text-[var(--accent)] mb-2">Writing</p>
           <h1 className="text-3xl sm:text-4xl font-bold text-[var(--text)] tracking-tight mb-4">Blog</h1>
           <p className="text-[var(--muted)] leading-relaxed text-lg">
-            Long-form engineering notes on this site, plus selected articles on Medium. Use tags to filter both lists.
+            Long-form engineering notes on this site, plus selected articles on Medium. Tags come from on-site posts and
+            filter both sections.
           </p>
         </header>
 

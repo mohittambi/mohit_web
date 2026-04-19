@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { CONTACT_PHONE_E164, CONTACT_EMAIL } from "@/data/blog/site";
 
 const display = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -93,8 +94,8 @@ const jsonLd = {
   description:
     "Platform Architect and Engineering Leader with 10+ years designing cloud-native distributed systems serving 7M+ users.",
   url: SITE_URL,
-  email: "er.mohittambi@gmail.com",
-  telephone: "+91-9509340191",
+  email: CONTACT_EMAIL,
+  telephone: CONTACT_PHONE_E164,
   address: {
     "@type": "PostalAddress",
     addressLocality: "Hyderabad",

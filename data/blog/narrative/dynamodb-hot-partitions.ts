@@ -4,7 +4,7 @@ import { postTitleBySlug } from "../post-titles";
 export const narrativeAppendix: NarrativeAppendix = {
   warStory: {
     context:
-      "Composite (scale architect lane): viral “global leaderboard” style feature backing a consumer app with Senseahead-style multi-tenant telemetry rows; single partition key per season; ~12k writes/sec peak synthetic test before marketing turned the knob in prod.",
+      "Composite (scale architect lane): viral “global leaderboard” style feature backing a consumer app with **Senseahead**-style multi-tenant telemetry—partition heat plus **ABAC** (IAM principal/session attributes + resource tags, DynamoDB FGAC) so tenant isolation is not only “correct PK prefix in app code”; single partition key per season; ~12k writes/sec peak synthetic test before marketing turned the knob in prod.",
     broke:
       "Throttling cascaded—client retries multiplied attempted writes; p99 user-facing latency >2s on reads colocated on hot partitions.",
     wrong_first:
