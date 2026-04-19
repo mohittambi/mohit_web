@@ -7,6 +7,7 @@ export const post: BlogPost = {
     "Skewed keys, burst capacity, and design patterns that spread load without giving up query patterns you need.",
   publishedAt: "2026-04-10",
   readTime: "10 min read",
+  difficulty: "Deep dive",
   tags: ["DynamoDB", "AWS", "Performance", "NoSQL", "IAM", "ABAC"],
   sections: [
     {

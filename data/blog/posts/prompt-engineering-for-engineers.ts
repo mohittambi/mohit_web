@@ -7,6 +7,7 @@ export const post: BlogPost = {
     "Treat prompts like APIs: contracts, examples, and tests so LLM behaviour stays stable across model upgrades.",
   publishedAt: "2026-04-14",
   readTime: "10 min read",
+  difficulty: "Intermediate",
   tags: ["LLM", "Prompting", "Quality", "DX", "AWS Bedrock"],
   sections: [
     {

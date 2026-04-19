@@ -7,6 +7,7 @@ export const post: BlogPost = {
     "Connecting user-perceived reliability to metrics executives can reason about—and budgets that change behaviour.",
   publishedAt: "2026-04-08",
   readTime: "8 min read",
+  difficulty: "Intermediate",
   tags: ["SRE", "SLO", "Leadership", "Observability"],
   sections: [
     {

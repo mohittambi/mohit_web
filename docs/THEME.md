@@ -97,7 +97,9 @@ Adding a new colour: set it under both `:root` and `.dark` unless it is identica
 
 Career-layer **distribution / reference** lines live in `data/blog/career/{slug}.ts` as `linkedInThread` (data field name is legacy). On the post they render under **“References & links”** with **labeled hyperlinks** (not raw URL text)—include real `blogPostUrl(...)` plus external docs where they help.
 
-**Blog index:** `/blog` uses `components/blog/BlogIndexWithTags.tsx` — compact tag strip (tags from on-site posts only), filters on-site posts and Medium cards by tag (OR). **Comments:** `components/blog/BlogComments.tsx` on each post — Giscus if `NEXT_PUBLIC_GISCUS_*` is set, else mailto form; see `docs/COMMENTS.md`.
+**Blog figures (plan):** target **5–12** diagrams/images per shipped post; use **Excalidraw** (primary, sketch architecture) + **Mermaid** (sequences/state machines) with a shared palette—see **`docs/BLOG_CONTENT_PLAN.md`** → *Visual assets & diagram consistency*. Assets live under `public/blog/{slug}/`.
+
+**Blog index:** `/blog` uses `components/blog/BlogIndexWithTags.tsx` — compact tag strip (tags from on-site posts only), filters on-site posts and Medium cards by tag (OR). Each on-site card surfaces **`readTime`** + **`difficulty`** (`Foundational` | `Intermediate` | `Deep dive` from `data/blog/posts/*.ts`) before the description. **Further reading:** optional `further_reading` sections merge from `data/blog/further-reading.ts` (after `read_next`) and render as titled external links plus context notes in `BlogPostBody.tsx`. **Comments:** `components/blog/BlogComments.tsx` on each post — Giscus if `NEXT_PUBLIC_GISCUS_*` is set, else mailto form; see `docs/COMMENTS.md`.
 
 ---
 

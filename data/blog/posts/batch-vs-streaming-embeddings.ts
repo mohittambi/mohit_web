@@ -7,6 +7,7 @@ export const post: BlogPost = {
     "When to batch-embed corpora, when to stream, and how to structure eval jobs so they finish on time and on budget.",
   publishedAt: "2026-04-11",
   readTime: "7 min read",
+  difficulty: "Deep dive",
   tags: ["ML", "Pipelines", "Embeddings", "Batch"],
   sections: [
     {

@@ -7,6 +7,7 @@ export const post: BlogPost = {
     "Head sampling, tail sampling, and collector pipelines: how to keep traces useful without paying twice in storage and query latency.",
   publishedAt: "2026-04-15",
   readTime: "11 min read",
+  difficulty: "Intermediate",
   tags: ["OpenTelemetry", "Observability", "SRE", "Cost"],
   sections: [
     {

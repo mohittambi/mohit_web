@@ -1,4 +1,5 @@
 import { careerArtifactBySlug } from "./career";
+import { furtherReadingAppendix } from "./further-reading";
 import { narrativeAppendixBySlug } from "./narrative";
 import { blogPosts } from "./posts";
 import { sortBlogPostsByPublishPriority } from "./publish-order";
@@ -10,6 +11,7 @@ function withNarrativeAppendix(post: BlogPost): BlogPost {
   const [first, ...rest] = post.sections;
   if (!first) return post;
 
+  const further = furtherReadingAppendix[post.slug];
   const narrativeBlocks: BlogSection[] = [
     {
       kind: "war_story",
@@ -31,6 +33,7 @@ function withNarrativeAppendix(post: BlogPost): BlogPost {
       intro: appendix.readNextIntro,
       items: appendix.readNextItems,
     },
+    ...(further ? [further] : []),
   ];
 
   return { ...post, sections: [first, ...narrativeBlocks] };

@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { BlogPostBody } from "@/components/blog/BlogPostBody";
 import { BlogComments } from "@/components/blog/BlogComments";
 import { Badge } from "@/components/ui/Badge";
+import { DifficultyChip } from "@/components/blog/DifficultyChip";
 import { getAllBlogSlugs, getBlogPostBySlug } from "@/data/blogPosts";
 
 const SITE_URL = "https://mohittambi.in";
@@ -57,11 +58,14 @@ export default async function BlogPostPage({ params }: Props) {
             {post.title}
           </h1>
           <p className="text-[var(--muted)] leading-relaxed text-lg mb-4">{post.description}</p>
-          <p className="text-sm text-[var(--muted)]">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--muted)]">
+            <span className="inline-flex items-center rounded-md border border-[var(--border-color)] bg-[var(--surface)] px-2 py-0.5 text-xs font-semibold tabular-nums text-[var(--text)]">
+              {post.readTime}
+            </span>
+            <DifficultyChip level={post.difficulty} />
+            <span className="text-[var(--muted)]">·</span>
             <time dateTime={post.publishedAt}>{post.publishedAt}</time>
-            <span className="mx-2">·</span>
-            {post.readTime}
-          </p>
+          </div>
           <div className="flex flex-wrap gap-2 mt-5">
             {post.tags.map((tag) => (
               <Badge key={tag} variant="subtle">

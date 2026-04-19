@@ -1,3 +1,6 @@
+/** Depth signal for listing + header (long sagas vs shorter tips). */
+export type BlogDifficulty = "Foundational" | "Intermediate" | "Deep dive";
+
 export type BlogSection =
   | { kind: "h2"; text: string }
   | { kind: "p"; text: string }
@@ -20,7 +23,12 @@ export type BlogSection =
   | { kind: "diagram_brief"; title: string; elements: string[] }
   | { kind: "cto_from_scratch"; week1: string[]; month1: string[]; scale: string[] }
   | { kind: "interview_prep"; interview30: string; cto1min: string }
-  | { kind: "signal_pack"; hook: string; visual: string; linkedInThread: string[] };
+  | { kind: "signal_pack"; hook: string; visual: string; linkedInThread: string[] }
+  | {
+      kind: "further_reading";
+      intro: string;
+      items: ReadonlyArray<{ title: string; href: string; context: string }>;
+    };
 
 export interface BlogPost {
   slug: string;
@@ -28,6 +36,8 @@ export interface BlogPost {
   description: string;
   publishedAt: string;
   readTime: string;
+  /** Depth / commitment for readers scanning the index. */
+  difficulty: BlogDifficulty;
   tags: string[];
   sections: BlogSection[];
 }

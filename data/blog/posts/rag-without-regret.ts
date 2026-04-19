@@ -7,6 +7,7 @@ export const post: BlogPost = {
     "How to size chunks, pick embedding models, and measure retrieval so RAG systems stay accurate under real document drift and query diversity.",
   publishedAt: "2026-04-18",
   readTime: "12 min read",
+  difficulty: "Deep dive",
   tags: ["RAG", "LLM", "Embeddings", "Search", "MLOps"],
   sections: [
     {

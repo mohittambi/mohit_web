@@ -7,6 +7,7 @@ export const post: BlogPost = {
     "Long-running business processes across services: orchestration choices, failure isolation, and safe recovery.",
   publishedAt: "2026-04-09",
   readTime: "10 min read",
+  difficulty: "Deep dive",
   tags: ["Saga", "Events", "Microservices", "Architecture"],
   sections: [
     {

@@ -7,6 +7,7 @@ export const post: BlogPost = {
     "Making LLM spend predictable: budgets, routing rules, and telemetry that ties dollars to product surfaces.",
   publishedAt: "2026-04-13",
   readTime: "9 min read",
+  difficulty: "Intermediate",
   tags: ["LLM", "Cost", "FinOps", "APIs"],
   sections: [
     {

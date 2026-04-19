@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ArrowUpRight, BookOpen, Lightbulb, X } from "lucide-react";
 import type { Article } from "@/data/articles";
 import { Badge } from "@/components/ui/Badge";
+import type { BlogDifficulty } from "@/data/blog/types";
+import { DifficultyChip } from "@/components/blog/DifficultyChip";
 
 export type BlogListingPost = {
   slug: string;
@@ -12,6 +14,7 @@ export type BlogListingPost = {
   description: string;
   publishedAt: string;
   readTime: string;
+  difficulty: BlogDifficulty;
   tags: string[];
 };
 
@@ -126,12 +129,16 @@ export function BlogIndexWithTags({ sitePosts, articles }: Props) {
                   <h3 className="font-semibold text-[var(--text)] text-lg leading-snug group-hover:text-[var(--accent)] transition-colors mb-2">
                     {post.title}
                   </h3>
-                  <p className="text-sm text-[var(--muted)] leading-relaxed mb-3">{post.description}</p>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted)]">
-                    <time dateTime={post.publishedAt}>{post.publishedAt}</time>
-                    <span>·</span>
-                    <span>{post.readTime}</span>
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <span className="inline-flex items-center rounded-md border border-[var(--border-color)] bg-[var(--bg)] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-[var(--text)]">
+                      {post.readTime}
+                    </span>
+                    <DifficultyChip level={post.difficulty} />
+                    <time className="text-[11px] text-[var(--muted)] tabular-nums" dateTime={post.publishedAt}>
+                      {post.publishedAt}
+                    </time>
                   </div>
+                  <p className="text-sm text-[var(--muted)] leading-relaxed mb-3">{post.description}</p>
                   <div className="flex flex-wrap gap-2 mt-3">
                     {post.tags.map((tag) => (
                       <Badge key={tag} variant="subtle">

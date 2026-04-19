@@ -118,8 +118,10 @@ export function BlogPostBody({ sections }: Readonly<{ sections: BlogSection[] }>
             <section key={i} className="rounded-xl border border-[var(--border-color)] bg-[var(--surface)] p-5 sm:p-6">
               <h2 className="text-lg font-semibold text-[var(--text)] mb-1">Architecture diagram (spec)</h2>
               <p className="text-xs text-[var(--muted)] mb-4">
-                Draw with failure arrows, retries, and bottlenecks—not generic boxes. Excalidraw / FigJam / Mermaid for
-                export.
+                Draw with failure arrows, retries, and bottlenecks—not generic boxes. Keep one **sketch style** across
+                posts (e.g. Excalidraw for architecture “stories”, Mermaid for sequences and state machines), one accent
+                palette, and one alarm colour for failure paths—so figures read as one body of work when you export them
+                for the post.
               </p>
               <p className="text-sm font-medium text-[var(--text)] mb-2">{renderBoldSegments(block.title)}</p>
               <ul className="list-disc pl-5 space-y-2 text-sm text-[var(--muted)] leading-relaxed marker:text-[var(--accent)]">
@@ -176,6 +178,33 @@ export function BlogPostBody({ sections }: Readonly<{ sections: BlogSection[] }>
                 <h3 className="text-sm font-semibold text-[var(--text)] mb-2">How I explain this to a CTO (~1 min)</h3>
                 <p className="text-sm text-[var(--muted)] leading-relaxed">{renderBoldSegments(block.cto1min)}</p>
               </div>
+            </section>
+          );
+        }
+        if (block.kind === "further_reading") {
+          return (
+            <section
+              key={i}
+              className="rounded-xl border border-[var(--border-color)] bg-[var(--surface)] p-5 sm:p-6"
+              aria-label="Further reading"
+            >
+              <h2 className="text-lg font-semibold text-[var(--text)] mb-1">Further reading</h2>
+              <p className="text-xs text-[var(--muted)] mb-5 leading-relaxed max-w-prose">{renderBoldSegments(block.intro)}</p>
+              <ul className="space-y-5 list-none p-0 m-0">
+                {block.items.map((item) => (
+                  <li key={item.href} className="pl-4 border-l-2 border-[var(--accent)]/35">
+                    <a
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)] underline-offset-2 hover:underline"
+                    >
+                      {item.title}
+                    </a>
+                    <p className="mt-1.5 text-sm text-[var(--muted)] leading-relaxed">{renderBoldSegments(item.context)}</p>
+                  </li>
+                ))}
+              </ul>
             </section>
           );
         }

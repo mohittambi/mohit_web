@@ -7,6 +7,7 @@ export const post: BlogPost = {
     "Cold starts, concurrency ceilings, and VPC complexity push teams toward containers. Here is how to decide—and how to migrate without heroics.",
   publishedAt: "2026-04-17",
   readTime: "10 min read",
+  difficulty: "Deep dive",
   tags: ["AWS", "Lambda", "ECS", "Architecture"],
   sections: [
     {

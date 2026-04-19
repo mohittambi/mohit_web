@@ -27,6 +27,7 @@ export default function BlogPage() {
     description: p.description,
     publishedAt: p.publishedAt,
     readTime: p.readTime,
+    difficulty: p.difficulty,
     tags: p.tags,
   }));
 

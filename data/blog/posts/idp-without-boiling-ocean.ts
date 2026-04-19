@@ -7,6 +7,7 @@ export const post: BlogPost = {
     "Golden paths, paved roads, and sequencing that earns trust before you centralise everything.",
   publishedAt: "2026-04-07",
   readTime: "10 min read",
+  difficulty: "Intermediate",
   tags: ["Platform", "DevEx", "Kubernetes", "Culture", "Developer Experience"],
   sections: [
     {

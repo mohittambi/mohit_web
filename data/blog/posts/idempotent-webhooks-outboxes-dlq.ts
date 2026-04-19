@@ -7,6 +7,7 @@ export const post: BlogPost = {
     "Webhook receivers must survive duplicates, delays, and poison payloads. Patterns that work at high volume.",
   publishedAt: "2026-04-16",
   readTime: "10 min read",
+  difficulty: "Intermediate",
   tags: ["Webhooks", "Reliability", "Messaging", "Postgres"],
   sections: [
     {

@@ -7,6 +7,7 @@ export const post: BlogPost = {
     "Why stuffing everything into the prompt fails—and patterns for durable session state outside the model.",
   publishedAt: "2026-04-12",
   readTime: "9 min read",
+  difficulty: "Intermediate",
   tags: ["LLM", "Architecture", "Redis", "UX"],
   sections: [
     {

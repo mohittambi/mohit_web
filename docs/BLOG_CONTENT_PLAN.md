@@ -4,6 +4,18 @@ This document is the **authoritative planning layer** for the twelve engineering
 
 **Career weapon (not “just a blog”):** every live post merges **`data/blog/narrative/{slug}.ts`** (war story, stance, numbers, read-next; barrel: `data/blog/narrative/index.ts`) and **`data/blog/career/{slug}.ts`** (diagram spec, CTO roadmap, interview scripts, references/links + hook + visual; barrel: `data/blog/career/index.ts`). The blog index is sorted by **`publishPriorityOrder`** in **`data/blog/publish-order.ts`** (re-exported from `data/blogCareerArtifacts.ts`). This stack is inbound + interview leverage—treat each URL as a **signal artifact factory**, not a diary.
 
+### Strategic spine — “production reality” & principal tone
+
+The plan’s strongest through-line is **production reality**: not only what a pattern is, but **what breaks under load** and **how you fix or unwind it** (duplicate webhooks at RPS, a saga stuck in an unknown state, retrieval that passes tests but fails in prod). That is what reads **principal-level**, not AI-generic.
+
+- **Hooks / war story:** In every narrative **Context** or opening scene, name at least one **quantified constraint** (e.g. **500ms p99**, dedupe row growth, cost envelope, correctness rule). Vague “we had latency issues” reads synthetic; **constraint + failure** reads lived.
+- **Anti-pattern gallery:** Beyond **`what_not`** in `data/blog/narrative/{slug}.ts`, add a **short “Anti-patterns”** block in long-form copy where it fits (DynamoDB-style)—senior readers share **what not to do**; it travels well on LinkedIn / HN-style threads.
+- **RAG without regret:** Centre **retrieval quality** (chunking, eval, provenance, hybrid behaviour)—most noise focuses on the LLM; **your** differentiation is engineering at the index and eval layer.
+- **Lambda → ECS:** Treat **DevEx and Dockerization burden** as a **first-class cost** next to infra billing—Lambda abstracts packaging; ECS shifts ownership to every service team.
+- **Idempotent webhooks:** Spell out **cleanup / lifecycle** for the idempotency store (TTL, archival, compaction)—**storing every dedupe key forever** eventually spikes DB cost and operational drag.
+- **DynamoDB hot partitions:** Position as the **deep distributed-systems anchor** in the Power Trio (skew, partition limits, buffers, load tests that match Zipf—not fiction).
+- **Event-driven sagas:** Emphasise **recovery when stuck** (timeouts, compensation ordering, human-in-the-loop, replay safety)—not only happy-path choreography.
+
 ---
 
 ## Career weapon playbook (signal → staff+ narrative)
@@ -36,9 +48,9 @@ Canonical order in **`publishPriorityOrder`** (`data/blog/publish-order.ts`) and
 
 | Week | Post | Why |
 |------|------|-----|
-| **1** | **RAG Without Regret** | High current market demand; shows taste on AI **systems** (retrieval, not model shopping). |
-| **2** | **Lambda → ECS** | Principal-level **cost vs complexity** (tails, PC, NAT-shaped paths, observability tax). |
-| **3** | **DynamoDB Hot Partitions** | **Scale architect** credentialing—skew, throttles, buffers, honest load tests. |
+| **1** | **RAG Without Regret** | High current market demand; AI **systems** credibility through **retrieval and eval**, not model shopping. |
+| **2** | **Lambda → ECS** | Principal-level **cost vs complexity** plus **DevEx** (Docker/task ownership vs Lambda’s packaging abstraction). |
+| **3** | **DynamoDB Hot Partitions** | **Deep-tech anchor**—skew, partitions, throttles, buffers, honest load tests (distributed storage under stress). |
 | **4** | **Idempotent Webhooks** | Opens the “tactical core” on money paths and at-least-once reality. |
 | **5+** | LLM token budgets → sagas → OpenTelemetry → context → prompt → batch/streaming → SLIs/SLOs → IDP | Depth and breadth after the trio lands. |
 
@@ -78,12 +90,43 @@ Apply this lens to every war story, `what_not`, and interview script before you 
 
 ---
 
+## Live site alignment (`/blog`)
+
+- **Index cards** show **`readTime`** and **`difficulty`** (set per slug in `data/blog/posts/{slug}.ts`) so a **Deep dive** (e.g. sagas, Dynamo) reads as a heavier ask than a shorter **Intermediate** note.
+- **Further reading** (authority, not a URL dump): add or edit `data/blog/further-reading.ts` for a slug—entries render as **linked titles + context** after “Read next” on the post page. Long-form body remains in post TS modules until you adopt MDX.
+
+## Visual assets & diagram consistency (5–12 figures per post)
+
+Shipped posts should land in the **5–12 figures** range promised in this plan (each slug’s **Expected images / diagrams** subsection is the checklist—not optional decoration). The goal is a **cohesive body of work**: same visual language across RAG, Dynamo, webhooks, etc., so the archive reads as one author’s systems notebook, not twelve random PDFs.
+
+### Default toolchain (pick a lane, stay in it)
+
+| Role | Tool | Use for |
+|------|------|--------|
+| **Primary** | **[Excalidraw](https://excalidraw.com/)** (or FigJam with similar “sketch” export) | Architecture, failure arrows, retry spirals, bottlenecks, migration timelines—anything that benefits from **hand-drawn** clarity and a human principal tone. |
+| **Secondary** | **[Mermaid](https://mermaid.js.org/)** (source in repo or MDX later) | **Sequence** diagrams, **state machines**, swimlanes, simple **flowcharts** where text-as-source and diffs in PRs matter. |
+
+**Rule of thumb:** if the figure is a **story** (what broke, where heat pooled), default to **Excalidraw**. If the figure is a **grammar** (ordering, transitions, strict states), default to **Mermaid**. Avoid mixing **photoreal UI mocks** with sketch architecture in the same post unless intentional.
+
+### Style sheet (same look everywhere)
+
+- **Palette:** neutrals + **one accent** aligned with the site (indigo / violet family); use **one alarm colour** (red or amber) only for failure paths, throttles, or “wrong first” branches—same hue across all posts.
+- **Lines:** one default **stroke weight** for boxes and arrows; **dashed** = optional / async / “eventually”; **thicker or doubled** = hot path or money path only where the plan already calls for it.
+- **Labels:** short nouns + verbs (“Dedupe hit”, “Outbox commit”); no 14-word arrows. Match the blog voice: **systems names** over marketing labels.
+- **Export:** **PNG @2×** (or SVG) for `public/blog/{slug}/`; file names **`fig-01-<short-slug>.png`** … **`fig-12-…`** so order and topic are obvious in git.
+- **Every figure ships with:** a **one-line caption** (what the reader should conclude) and **alt text** (what’s in the image for screen readers and SEO). Store captions next to assets in MDX/frontmatter later; until then, keep a `figures.md` per slug beside exports if useful.
+
+### Workflow tie-in
+
+- **Diagram spec** in `data/blog/career/{slug}.ts` is the **contract**: each bullet should map to a numbered figure (or merge two bullets into one composite only when it still reads clearly).
+- Step **“Figure pass”** in the refinement table means: Excalidraw/Mermaid source saved (or exported), files under `public/blog/{slug}/`, captions + alt drafted—**then** tick the post’s visual checklist.
+
 ## How to use this doc (refine → validate → ship)
 
 1. **Pick a post** from the table below; read its “detailed review” and outline.
 2. **Draft in your voice** (see [Voice and humanisation](#voice-and-humanisation)); replace composite blocks in `data/blog/narrative/{slug}.ts` with **your** war story, numbers, and “What I would NOT do” bullets when safe for employers/clients.
 3. **Self-review** against the **validation checklist** for that post; tick items in a PR or private notes.
-4. **Add assets**: place images under `public/blog/{slug}/` (or similar); reference them from the post body when we migrate from data-only sections to MDX/rich content.
+4. **Add assets**: follow **[Visual assets & diagram consistency](#visual-assets--diagram-consistency-5--12-figures-per-post)**—`public/blog/{slug}/`, Excalidraw + Mermaid split, naming, captions/alt; wire into the post body when you migrate to MDX/rich content.
 5. **Technical accuracy pass**: run the **step validation** bullets (numbers, claims, links) with the **Sources** section open.
 6. **Publish**: update `data/blog/posts/{slug}.ts` (or future MDX) + `readTime` + `publishedAt` when the long-form version ships.
 
@@ -116,7 +159,7 @@ The **#** column is file/slug convenience only; **publish order** follows the **
 
 Write as **you**: Mohit Tambi — principal/staff-level engineer, not a generic AI blog.
 
-- **Openings**: one concrete scene (on-call, migration week, review comment) before the thesis.
+- **Openings**: one concrete scene (on-call, migration week, review comment) before the thesis—and tie it to a **measurable constraint** (p99 budget, RPS ceiling, row growth, error budget) so the hook cannot be swapped onto any other blog.
 - **Opinions**: name trade-offs you have actually lived with (“we chose X because…”).
 - **Humility**: where guidance is generic, say so; where it is battle-tested, cite the context (size, stack, year).
 - **Rhythm**: vary sentence length; use short paragraphs; avoid stacked buzzword triads.
@@ -138,6 +181,8 @@ Top engineering writing is not neutral Wikipedia. Readers follow authors who **s
 
 **Required section in every post:** **“What I would NOT do”** (3–5 bullets). No hedging weasel words (“might”, “could potentially”) unless you immediately explain the condition under which you would do the thing.
 
+**Strongly recommended:** an **“Anti-patterns”** short block (3–6 bullets) in the long-form article—distinct from “What I would NOT do” when useful: anti-patterns are **common industry mistakes**; `what_not` is **what you almost did in the scar**. Either can be excerpted for social.
+
 **Live implementation:** narrative blocks merged in `getBlogPostBySlug()` from `data/blog/narrative/` (red callout on the post page).
 
 ### Gap 2 — Real system narrative (structured war story)
@@ -148,7 +193,7 @@ Top engineering writing is not neutral Wikipedia. Readers follow authors who **s
 
 | Field | Content |
 |--------|---------|
-| **Context** | Scale, system shape, constraint (RPS, tenants, stack). |
+| **Context** | Scale, system shape, and a **quantified constraint** (RPS, tenants, **latency/cost envelope**, stack)—the tighter the number, the less “AI slop” the hook feels. |
 | **What broke** | Observable failure; user or business impact. |
 | **What we tried first (wrong)** | The tempting fix that failed. |
 | **Final solution** | What actually worked. |
@@ -244,7 +289,7 @@ When you refine an edge, update **both** the diagram and `readNextItems` for tha
 
 ### Detailed review
 
-RAG fails more often at the **retrieval and chunking** layer than at the LLM. Readers need a **decision framework**: when fixed windows are acceptable, when structure-aware chunking wins, how **embedding + lexical** hybrid behaves under domain jargon, and how to **eval** retrieval with golden sets that resemble production—not toy QA. The post should connect ingestion versioning to safe re-embeds and rollback.
+RAG fails more often at the **retrieval and chunking** layer than at the LLM—**the engineering is in retrieval**, not in swapping models. Readers need a **decision framework**: when fixed windows are acceptable, when structure-aware chunking wins, how **embedding + lexical** hybrid behaves under domain jargon, and how to **eval** retrieval with golden sets that resemble production—not toy QA. The post should connect ingestion versioning to safe re-embeds and rollback.
 
 ### Proposed outline (long-form target)
 
@@ -280,7 +325,7 @@ RAG fails more often at the **retrieval and chunking** layer than at the LLM. Re
 
 ### Detailed review
 
-This is a **decision and migration** piece, not anti-Lambda. Readers want **signals** (cold start, concurrency, VPC, package size, observability sidecars), a **cost framing** that includes ops burden, and a **migration** pattern (strangler, feature flags, rollback). Avoid treating ECS as “always better”; emphasise **blast radius** and **team skill** parity.
+This is a **decision and migration** piece, not anti-Lambda. Readers want **signals** (cold start, concurrency, VPC, package size, observability sidecars), a **cost framing** that includes **ops burden and DevEx**—moving to ECS/Fargate adds **Dockerization, task definitions, and release discipline** that Lambda had abstracted; price that honestly against infra line items. Include a **migration** pattern (strangler, feature flags, rollback). Avoid treating ECS as “always better”; emphasise **blast radius** and **team skill** parity.
 
 ### Proposed outline
 
@@ -305,6 +350,7 @@ This is a **decision and migration** piece, not anti-Lambda. Readers want **sign
 - [ ] Concurrency limits tied to **real AWS behaviour** (document links in post).
 - [ ] Migration path includes **rollback** in one step or less.
 - [ ] Cost section states **assumptions** (region, traffic shape, ARM vs x86).
+- [ ] **DevEx / packaging cost** called out (Docker, CI, on-call runbooks) as a decision input, not only $/invocation vs $/task-hour.
 
 ---
 
@@ -314,7 +360,7 @@ This is a **decision and migration** piece, not anti-Lambda. Readers want **sign
 
 ### Detailed review
 
-Webhooks are **at-least-once**. The post must make **idempotency keys**, **storage constraints**, and **outbox** transactional boundaries crisp. DLQs need **operational maturity**: replay tooling, poison message policy, ordering when it matters. Stripe-style thinking is a good mental model; ground in **your** stack (e.g. Postgres unique index + outbox table).
+Webhooks are **at-least-once**. The post must make **idempotency keys**, **storage constraints**, and **outbox** transactional boundaries crisp. DLQs need **operational maturity**: replay tooling, poison message policy, ordering when it matters. **Battle-tested angle:** if you retain **every** dedupe key forever, **storage and index cost** eventually spike—cover **TTL, archival, or compaction** (and how replay interacts with deleted keys). Stripe-style thinking is a good mental model; ground in **your** stack (e.g. Postgres unique index + outbox table).
 
 ### Proposed outline
 
@@ -323,9 +369,10 @@ Webhooks are **at-least-once**. The post must make **idempotency keys**, **stora
 3. Dedupe: provider id vs content hash; unique indexes; response replay.
 4. Outbox pattern: same transaction as business write; dispatcher.
 5. Ordering: partitions, keys, when strict order is required.
-6. DLQ: alert thresholds, sampling, human replay runbook.
-7. Security: signature verification, replay attacks, id rotation.
-8. Closing: minimal schema sketch (text or diagram).
+6. **Dedupe store lifecycle:** retention vs audit needs; TTL/archival; cost of unbounded growth.
+7. DLQ: alert thresholds, sampling, human replay runbook.
+8. Security: signature verification, replay attacks, id rotation.
+9. Closing: minimal schema sketch (text or diagram).
 
 ### Expected images
 
@@ -339,6 +386,7 @@ Webhooks are **at-least-once**. The post must make **idempotency keys**, **stora
 - [ ] Outbox + business write **same transaction** or explains alternative.
 - [ ] DLQ section includes **replay safety** (idempotent consumers).
 - [ ] Signature verification mentioned with **timestamp tolerance**.
+- [ ] **Idempotency store cleanup** addressed (TTL, archival, or bounded retention)—not “keys live forever by default.”
 
 ---
 
@@ -551,7 +599,7 @@ Explain partition limits **conceptually** (without claiming numbers that change�
 
 ### Detailed review
 
-Cover **choreography vs orchestration**, saga state persistence, **compensating transactions**, timeouts as state transitions, and **human** intervention for irreversible steps. Use a tangible example (order → payment → inventory) without claiming a specific employer’s system.
+Cover **choreography vs orchestration**, saga state persistence, **compensating transactions**, timeouts as state transitions, and **human** intervention for irreversible steps. Lead with **production reality:** readers care how you **unstick** a saga (unknown state, partial commit, poison compensator)—not only how you draw the happy path. Use a tangible example (order → payment → inventory) without claiming a specific employer’s system.
 
 ### Proposed outline
 
@@ -656,8 +704,13 @@ IDP adoption is **cultural and sequencing**. Golden paths, paved roads, self-ser
 | 4 | Figure pass | Each planned image has caption + alt text |
 | 5 | Legal/safety pass | No confidential employer data; trademarks used nominatively |
 | 6 | Copy edit | Tighten; remove AI cadence; read aloud |
-| 7 | Ship to `data/blog/posts/{slug}.ts` / MDX | `readTime` and `publishedAt` updated; links live |
-| 8 | Post-publish | Sitemap ok; OG preview ok on one messenger + one crawler tool |
+| 7 | **“So what?” / Week 1 action plan** | The **conclusion** (or closing section) gives a **checklist a principal IC can take to the next Sprint Planning**—concrete Week 1 moves (instrument, gate, doc, spike), not inspiration-only wrap-up |
+| 8 | Ship to `data/blog/posts/{slug}.ts` / MDX | `readTime` and `publishedAt` updated; links live; **Week 1** checklist satisfied in conclusion **or** the **Week 1** bullets under “If I were building this from scratch” clearly double as Sprint Planning–ready actions |
+| 9 | Post-publish | Sitemap ok; OG preview ok on one messenger + one crawler tool |
+
+**Ship gate (copy into PR / notes):**
+
+- [ ] **“So what?” test:** Does the reader leave with a **Week 1 action plan**—a short checklist they could paste into Sprint Planning (even if some items are “spike” or “measure baseline”)? If the only ending is summary prose, add bullets or point explicitly to **Week 1** in “If I were building this from scratch.”
 
 ---
 
