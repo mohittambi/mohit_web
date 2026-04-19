@@ -71,7 +71,7 @@ Use via `var(--radius-lg)` in custom CSS, or extend Tailwind `@theme` with `--ra
 
 ## Dark mode
 
-- **Provider:** `components/ui/ThemeProvider.tsx` — `next-themes`, `attribute="class"`, `defaultTheme="dark"`, `enableSystem`.
+- **Provider:** `components/ui/ThemeProvider.tsx` — `next-themes`, `attribute="class"`, `defaultTheme="light"`, `enableSystem`.
 - **Selector:** `.dark { ... }` in `globals.css` overrides the tokens above.
 - **Toggle:** `components/ui/ThemeToggle.tsx`.
 
