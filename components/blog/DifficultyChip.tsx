@@ -2,7 +2,7 @@ import type { BlogDifficulty } from "@/data/blog/types";
 
 const chipClass: Record<BlogDifficulty, string> = {
   Foundational:
-    "border border-emerald-600/25 bg-emerald-600/10 text-emerald-900 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-100",
+    "border border-[var(--border-color)] bg-[var(--surface)] text-[var(--muted)]",
   Intermediate:
     "border border-[var(--accent)]/30 bg-[var(--accent-muted)] text-[var(--accent)]",
   "Deep dive":

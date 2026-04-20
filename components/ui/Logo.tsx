@@ -16,12 +16,12 @@ export function Logo({ size = 36, className = "" }: LogoProps) {
     >
       <defs>
         <linearGradient id="logoGrad" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#6366f1" />
-          <stop offset="1" stopColor="#4338ca" />
+          <stop stopColor="#0098a8" />
+          <stop offset="1" stopColor="#00f0ff" />
         </linearGradient>
       </defs>
-      {/* Background */}
-      <rect width="44" height="44" rx="10" fill="url(#logoGrad)" />
+      {/* Background — cyan-only gradient (Circuit Blue accent family) */}
+      <rect width="44" height="44" rx="2" fill="url(#logoGrad)" />
       {/* Distributed node network — metaphor for distributed systems */}
       <circle cx="22" cy="7.5" r="1.6" fill="white" fillOpacity="0.55" />
       <circle cx="7.5" cy="34" r="1.6" fill="white" fillOpacity="0.55" />

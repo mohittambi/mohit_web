@@ -23,7 +23,7 @@ function renderFormula(formula: string): React.ReactNode {
             return (
               <div
                 key={line}
-                className="overflow-x-auto py-1 text-emerald-700 dark:text-emerald-300"
+                className="overflow-x-auto py-1 text-[var(--accent)]"
                 dangerouslySetInnerHTML={{ __html: html }}
               />
             );
@@ -32,7 +32,7 @@ function renderFormula(formula: string): React.ReactNode {
           }
         }
         return (
-          <code key={line} className="block font-mono text-[13px] text-emerald-700 dark:text-emerald-300 bg-[var(--bg)] border border-[var(--border-color)] rounded px-3 py-1.5 overflow-x-auto whitespace-pre">
+          <code key={line} className="block font-mono text-[13px] text-[var(--accent)] bg-[var(--bg)] border border-[var(--border-color)] rounded px-3 py-1.5 overflow-x-auto whitespace-pre">
             {line}
           </code>
         );
@@ -101,12 +101,12 @@ async function renderSection(block: BlogSection, i: number): Promise<React.React
               <PaneCode html={beforeHtml} code={block.before.code} />
             </div>
           )}
-          <div className={`rounded-xl border overflow-hidden ${block.before ? "border-emerald-500/30" : "border-[var(--accent)]/30"}`}>
-            <div className={`px-3 py-2 border-b flex items-center gap-2 ${block.before ? "bg-emerald-500/[0.08] border-emerald-500/20" : "bg-[var(--accent)]/[0.08] border-[var(--accent)]/20"}`}>
-              <span className={`text-base leading-none ${block.before ? "text-emerald-400" : "text-[var(--accent)]"}`} aria-hidden>
+          <div className="rounded-xl border overflow-hidden border-[var(--accent)]/30">
+            <div className="px-3 py-2 border-b flex items-center gap-2 bg-[var(--accent)]/[0.08] border-[var(--accent)]/20">
+              <span className="text-base leading-none text-[var(--accent)]" aria-hidden>
                 {block.before ? "✓" : "→"}
               </span>
-              <span className={`text-[11px] font-semibold uppercase tracking-wide ${block.before ? "text-emerald-400" : "text-[var(--accent)]"}`}>
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--accent)]">
                 {block.after.label ?? (block.before ? "After" : "Example")}
               </span>
             </div>
@@ -269,14 +269,14 @@ async function renderSection(block: BlogSection, i: number): Promise<React.React
   if (block.kind === "signal_pack") return null;
   if (block.kind === "cost_note") {
     return (
-      <section key={i} className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.06] dark:bg-emerald-500/[0.08] p-5 sm:p-6 space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+      <section key={i} className="rounded-xl border border-[var(--accent)]/25 bg-[var(--accent)]/[0.06] dark:bg-[var(--accent)]/[0.08] p-5 sm:p-6 space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-widest text-[var(--accent)] flex items-center gap-1.5">
           <span aria-hidden>$</span>
           {block.label ?? "FinOps note"}
         </p>
         <ul className="space-y-2.5">
           {block.paragraphs.map((para) => (
-            <li key={para} className="text-sm text-[var(--muted)] leading-relaxed pl-3 border-l-2 border-emerald-500/40">
+            <li key={para} className="text-sm text-[var(--muted)] leading-relaxed pl-3 border-l-2 border-[var(--accent)]/40">
               {renderBoldSegments(para)}
             </li>
           ))}
@@ -287,14 +287,14 @@ async function renderSection(block: BlogSection, i: number): Promise<React.React
   }
   if (block.kind === "region_note") {
     return (
-      <section key={i} className="rounded-xl border border-sky-500/25 bg-sky-500/[0.06] dark:bg-sky-500/[0.08] p-5 sm:p-6 space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-widest text-sky-700 dark:text-sky-400 flex items-center gap-1.5">
+      <section key={i} className="rounded-xl border border-[var(--accent)]/25 bg-[var(--surface)] p-5 sm:p-6 space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-widest text-[var(--accent)] flex items-center gap-1.5">
           <span aria-hidden>⊕</span>
           Regional note · {block.region ?? "ap-south-1 (Mumbai)"}
         </p>
         <ul className="space-y-2.5">
           {block.paragraphs.map((para) => (
-            <li key={para} className="text-sm text-[var(--muted)] leading-relaxed pl-3 border-l-2 border-sky-500/40">
+            <li key={para} className="text-sm text-[var(--muted)] leading-relaxed pl-3 border-l-2 border-[var(--accent)]/35">
               {renderBoldSegments(para)}
             </li>
           ))}

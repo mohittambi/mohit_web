@@ -246,6 +246,9 @@ function splitSpeakSegments(fullText: string, blockEl: Element): SpeakSegment[] 
 }
 
 export function ReadAloudController() {
+  /** Avoid hydration mismatch: SSR has no `speechSynthesis`; gate UI until client mount. */
+  const [mounted, setMounted] = useState(false);
+
   const [state, setState] = useState<"idle" | "playing" | "paused">("idle");
   /** Mirrors idxRef for Prev/Next disabled states (refs alone do not re-render). */
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -293,6 +296,10 @@ export function ReadAloudController() {
   }, [clearReadAloudSectionOutline]);
 
   useEffect(() => () => cleanup(), [cleanup]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const speakChunk = useCallback(
     (idx: number) => {
@@ -552,7 +559,8 @@ export function ReadAloudController() {
     }
   };
 
-  if (globalThis.window === undefined || !globalThis.speechSynthesis) return null;
+  if (!mounted) return null;
+  if (!globalThis.speechSynthesis) return null;
 
   const nChunks = chunksRef.current.length;
   const hasChunks = nChunks > 0;

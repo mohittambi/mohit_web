@@ -1,3 +1,13 @@
+> **⚠️ MIGRATION IN PROGRESS (April 2026): "Tactile Engineering" UI**
+> We are actively migrating away from SaaS-friendly defaults (indigo accents, rounded corners, soft shadows, Plus Jakarta Sans).
+>
+> **Current strict rules for all new commits:**
+> 1. **Shape:** `0px` radius for structural containers; max `2px` for interactive controls. No drop shadows; use 1px borders for elevation.
+> 2. **Typography:** `IBM Plex Sans` (or `Inter` fallback) for body. `JetBrains Mono` strictly reserved for technical chrome (nav, dates, metrics, code).
+> 3. **Color:** Base is Foundry Grey (`#1A1A1B`). No violet/indigo.
+> 4. **Motion:** No slow fades. Maximum duration `0.15s` linear snaps.
+> *Do not introduce new SVG/diagram assets until Phase C of the UI rollout is complete.*
+
 # Theme & typography
 
 This site uses **CSS custom properties** (variables) for colours and layout tokens, **Tailwind CSS v4** `@theme inline` so utilities (`bg-background`, `text-foreground`, `font-sans`, `font-mono`) stay aligned with those variables, and **next-themes** with the `class` strategy (`.dark` on `<html>`).
@@ -8,11 +18,11 @@ This site uses **CSS custom properties** (variables) for colours and layout toke
 
 | Role | Stack | Source |
 |------|--------|--------|
-| **UI & body** | Plus Jakarta Sans | `next/font/google` → `--font-display` on `<html>` |
+| **UI & body** | IBM Plex Sans | `next/font/google` → `--font-display` on `<html>` |
 | **Code & mono** | JetBrains Mono | `next/font/google` → `--font-code` on `<html>` |
 
-- **Body** uses the display stack for all prose and UI. It is slightly tighter and more distinctive than Inter while staying highly readable.
-- **`font-mono`** (Tailwind) resolves to JetBrains Mono for hero watermarks, inline code, and technical labels.
+- **Body** uses IBM Plex Sans for technical UI density; long-form blog uses the same stack with `blog-prose` tuning in `globals.css`.
+- **`font-mono`** (Tailwind) resolves to JetBrains Mono for nav, dates, metrics, inline code, and technical labels — not for body paragraphs.
 
 Files:
 
@@ -34,10 +44,10 @@ Variables are defined on `:root` (light) and `.dark` (dark). Components should p
 | `--border-color` | Hairlines, dividers | Hairlines, dividers |
 | `--text` | Primary copy | Primary copy |
 | `--muted` | Secondary copy, captions | Secondary copy |
-| `--accent` | Links, labels, focus ring base | Links, labels |
-| `--accent-hover` | Hover state for accent | Hover state for accent |
-| `--accent-glow` | Hero / ambient gradients | Hero / ambient gradients |
-| `--accent-muted` | Tinted backgrounds (badges, chips) | Tinted backgrounds |
+| `--accent` | **Blueprint teal** `#00929F` (~`hsl(185, 90%, 30%)`) — legible on light UI | **Circuit cyan** `#00F0FF` — terminal / instrument glow on Foundry Grey |
+| `--accent-hover` | Darker teal (`#007584`) | Lighter cyan (`#66F7FF`) |
+| `--accent-glow` | Teal-tinted wash | Cyan wash |
+| `--accent-muted` | Teal-tinted surfaces | Cyan-tinted surfaces |
 | `--success` | Status “live” dot, positive cues | Brighter green for dark UI |
 | `--danger` | Error / destructive emphasis (sparingly) | Softer red on dark |
 
@@ -45,11 +55,14 @@ Variables are defined on `:root` (light) and `.dark` (dark). Components should p
 
 | Token | Use |
 |-------|-----|
-| `--radius-sm` … `--radius-xl` | Corner radii in custom CSS or inline `rounded-[var(--radius-lg)]` |
-| `--shadow-sm`, `--shadow-md` | Card elevation when you want tokens instead of Tailwind defaults |
-| `--ring` | Matches accent; used by global `*:focus-visible` |
+| `--radius-sm`, `--radius-lg`, `--radius-xl` | **`0`** — structural shells, cards, panels |
+| `--radius-md` | **`2px`** — buttons, inputs, chips, compact controls |
+| `--shadow-sm`, `--shadow-md` | **Deprecated for elevation** — prefer `1px` `border-color` borders; tokens kept transparent for legacy classnames |
+| `--ring` | Matches `--accent`; used by global `*:focus-visible` |
 
-**Rule of thumb:** do not hard-code hex colours in components unless it is a one-off chart or brand logo. Add a new token in `globals.css` if a pattern repeats.
+**Dark base:** `--bg` on `.dark` is Foundry Grey **`#1A1A1B`** (see `globals.css`). **Accent:** **`#00F0FF`** in dark mode; **light mode** uses **`#00929F`** so links and rings stay WCAG-legible on pale backgrounds (same hue family, lower luminance).
+
+**Rule of thumb:** do not hard-code hex colours in components unless it is a one-off chart or third-party logo. Add a new token in `globals.css` if a pattern repeats.
 
 ---
 
@@ -57,13 +70,12 @@ Variables are defined on `:root` (light) and `.dark` (dark). Components should p
 
 | Token | Typical use |
 |-------|-------------|
-| `--radius-sm` | Small chips, inputs |
-| `--radius-md` | Buttons, small cards |
-| `--radius-lg` | Cards, sections |
-| `--radius-xl` | Hero panels, modals |
-| `--shadow-sm` | Resting cards |
-| `--shadow-md` | Hover / lifted cards |
-| `--ring` | Focus ring colour (matches accent) |
+| `--radius-sm` | Structural (0) |
+| `--radius-md` | Interactive controls (**2px**) |
+| `--radius-lg` | Structural shells (**0**) |
+| `--radius-xl` | Structural (**0**) |
+| `--shadow-sm`, `--shadow-md` | Unused for elevation — use borders |
+| `--ring` | Focus ring (**Circuit Blue**) |
 
 Use via `var(--radius-lg)` in custom CSS, or extend Tailwind `@theme` with `--radius-*` if you want `rounded-[length:var(--radius-lg)]`-style utilities consistently.
 
@@ -110,4 +122,4 @@ Career-layer **distribution / reference** lines live in `data/blog/career/{slug}
 
 ---
 
-*Last updated alongside the Plus Jakarta Sans + JetBrains Mono refresh and expanded semantic tokens.*
+*Last updated alongside the tactile migration: IBM Plex Sans, Foundry Grey dark base, **light** blueprint teal `#00929F` / **dark** circuit cyan `#00F0FF`, sharp radii.*

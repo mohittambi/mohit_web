@@ -78,14 +78,13 @@ public/
 ### CSS Variables (theme tokens)
 
 ```text
-Light mode               Dark mode
---bg: #ffffff            --bg: #09090b
---surface: #f4f4f5       --surface: #18181b
---border-color: #e4e4e7  --border-color: #27272a
---text: #09090b          --text: #fafafa
---muted: #71717a         --muted: #a1a1aa
---accent: #4f46e5        --accent: #6366f1
---accent-hover: #4338ca  --accent-hover: #818cf8
+Light mode (Blueprint teal on pale UI)   Dark (Foundry Grey + Circuit Cyan)
+--bg: #f8f9fa                            --bg: #1a1a1b
+--surface: #eff1f4                      --surface: #242426
+--border-color: #e5e7eb                 --border-color: #333334
+--text: #1a1a1b                         --text: #f3f4f6
+--accent: #00929f                        --accent: #00f0ff
+--accent-hover: #007a85                  --accent-hover: #00c8d6
 ```
 
 Dark mode: `next-themes` adds `.dark` to `<html>`.

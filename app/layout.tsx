@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
@@ -8,11 +8,11 @@ import { Footer } from "@/components/layout/Footer";
 import { CONTACT_PHONE_E164, CONTACT_EMAIL } from "@/data/blog/site";
 import { CopyGuard } from "@/components/ui/CopyGuard";
 
-const display = Plus_Jakarta_Sans({
+const display = IBM_Plex_Sans({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const code = JetBrains_Mono({

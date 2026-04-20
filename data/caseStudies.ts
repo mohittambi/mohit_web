@@ -43,7 +43,7 @@ export const caseStudies: CaseStudy[] = [
       "Eliminated cold-start delays entirely",
       "Zero-downtime migration with no client changes required",
     ],
-    accentColor: "#6366f1",
+    accentColor: "#00929f",
   },
   {
     id: "wallet-reconciliation",
