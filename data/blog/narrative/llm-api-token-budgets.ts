@@ -4,11 +4,11 @@ import { postTitleBySlug } from "../post-titles";
 export const narrativeAppendix: NarrativeAppendix = {
   warStory: {
     context:
-      "Composite: multi-tenant SaaS assistant; ~35% MoM token growth with flat MAU -- classic 'feature creep inside the prompt.'",
+      "Composite: internal supply chain extraction agent; infinite retry loop over a weekend; a path that usually cost ~$50/day spiked to ~$1,200 by Monday.",
     broke:
-      "Finance escalated when one tenant tier burned ~18× median tokens; engineering had no dimension to explain it beyond 'AI is expensive.'",
+      "Default model was a frontier Opus-class SKU for a trivial JSON formatting path; finance saw a line item, not a feature or tenant — no way to answer 'what changed.'",
     wrong_first:
-      "We hard-capped tokens per user per day -- support tickets >3× normal; product revolt until we split soft caps + UX transparency.",
+      "We almost hard-capped tokens per user per day as a panic move -- that would have spiked support volume; the real fix was routing + attribution, not a blind ceiling.",
     solution:
       "Per-feature, per-tenant, per-workflow tags on every call; dashboards mirrored to finance dimensions; routing table for cheap vs premium models.",
     tradeoff:

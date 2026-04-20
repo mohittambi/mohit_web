@@ -4,9 +4,9 @@ import { postTitleBySlug } from "../post-titles";
 export const narrativeAppendix: NarrativeAppendix = {
   warStory: {
     context:
-      "Composite: order → reserve → charge → ship; ~500 saga starts/sec baseline; payment provider slow.",
+      "Composite (A23-shaped): tournament buy-in across Wallet, Tournament Engine, Notification; deduct succeeded but seat allocation failed mid-flight.",
     broke:
-      "Saga stuck in 'reserved inventory, charge pending' for hours; compensations ran out of order once -- oversold snapshot for ~90 seconds until reconciled.",
+      "Manual SQL refunds at 2 AM and angry users who paid but had no seat until ops reconciled; choreography-style failure chains were impossible to replay cleanly.",
     wrong_first:
       "We added more synchronous 'verify' calls between steps -- p99 latency +~400ms, still did not fix partial states under duplicate events.",
     solution:

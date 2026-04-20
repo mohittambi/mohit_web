@@ -3,6 +3,8 @@ import katex from "katex";
 import type { BlogSection } from "@/data/blogPosts";
 import { renderBoldSegments } from "@/components/blog/inlineEmphasis";
 import { CodeBlock } from "@/components/blog/CodeBlock";
+import { MermaidBlock } from "@/components/blog/MermaidBlock";
+import { ArchitectureToggle } from "@/components/blog/ArchitectureToggle";
 import { codeToHtml } from "shiki";
 
 function slugify(text: string): string {
@@ -52,6 +54,41 @@ const warLabels = [
 async function renderSection(block: BlogSection, i: number): Promise<React.ReactNode> {
   if (block.kind === "code_block") {
     return <CodeBlock key={i} code={block.code} language={block.language} title={block.title} />;
+  }
+  if (block.kind === "mermaid") {
+    return <MermaidBlock key={i} code={block.code} />;
+  }
+  if (block.kind === "system_alert") {
+    return (
+      <aside
+        key={i}
+        className="rounded-[2px] border border-[var(--border-color)] border-l-[3px] border-l-[var(--accent)] bg-[var(--surface)] px-4 py-4 my-2"
+        role="note"
+      >
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--accent)] mb-2 font-mono">
+          {block.label}
+        </p>
+        <div className="text-sm text-[var(--muted)] leading-relaxed">{renderBoldSegments(block.text)}</div>
+      </aside>
+    );
+  }
+  if (block.kind === "ol") {
+    return (
+      <ol
+        key={i}
+        className="list-decimal pl-6 space-y-2 text-[var(--muted)] leading-relaxed text-[15px] sm:text-base marker:font-mono marker:text-[var(--accent)]"
+      >
+        {block.items.map((item) => (
+          <li key={item}>{renderBoldSegments(item)}</li>
+        ))}
+      </ol>
+    );
+  }
+  if (block.kind === "hr") {
+    return <hr key={i} className="border-0 border-t border-[var(--border-color)] my-10" />;
+  }
+  if (block.kind === "architecture_toggle") {
+    return <ArchitectureToggle key={i} variant={block.variant ?? "lambda_ecs"} />;
   }
   if (block.kind === "prompt_example") {
     async function highlightPane(code: string, language = "text") {

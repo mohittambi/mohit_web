@@ -1,157 +1,191 @@
 import type { BlogPost } from "../types";
 
+const OUTBOX_MERMAID = `graph TD
+    A[External Provider] -- "POST /webhook" --> B[API Gateway]
+    B --> C[Ingress Lambda / ECS]
+
+    C -- "1. Condition: attribute_not_exists" --> D[(DynamoDB Ingress Table)]
+    C -- "2. Return 200 OK" --> A
+
+    D -- "3. DynamoDB Streams" --> E[SQS FIFO Queue]
+    E --> F[Async Worker Fleet]
+    F --> G[(Core Ledger / Supply Chain DB)]`;
+
+const WEBHOOK_AUTH_SNIPPET = `import crypto from 'crypto';
+
+export function verifySignature(rawBody: string, signature: string, secret: string): boolean {
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(rawBody)
+    .digest('hex');
+
+  // Use timingSafeEqual to prevent timing attacks
+  return crypto.timingSafeEqual(
+    Buffer.from(expectedSignature),
+    Buffer.from(signature)
+  );
+}`;
+
 export const post: BlogPost = {
   slug: "idempotent-webhooks-outboxes-dlq",
   title: "Designing Idempotent Webhooks at Scale: Outboxes, Dedupe Keys, and DLQs",
   description:
-    "Webhook receivers must survive duplicates, delays, and poison payloads. Patterns that work at high volume.",
+    "At-least-once reality, read-then-write races, DynamoDB transaction tax vs conditioned PutItem in ap-south-1, transactional outbox with Streams → SQS FIFO, poison pills and DLQs with redrive, and HMAC verification with timing-safe comparison.",
   publishedAt: "2026-04-16",
   readTime: "10 min read",
   difficulty: "Intermediate",
-  tags: ["Webhooks", "Reliability", "Messaging", "Postgres"],
+  tags: ["Webhooks", "Reliability", "Messaging", "Postgres", "AWS", "Architecture"],
   sections: [
     {
       kind: "p",
-      text: "Providers retry. Networks reorder. Your handler will see the same logical event more than once. Idempotency is not a header decoration -- it is a durable record of what you have already accepted and what side effects you have already committed.",
-    },
-    {
-      kind: "h2",
-      text: "Dedupe keys and natural keys",
+      text: "Your payment gateway sends a `payment_success` webhook. Your server processes it, updates the ledger, but experiences a 200ms network blip while sending the `200 OK` acknowledgment back. Assuming the delivery failed, the gateway retries the webhook 5 seconds later. If your architecture is naive, you just credited the user's wallet twice for a single transaction. At A23, doing this at the scale of 7M+ users isn't a \"bug\"—it is a catastrophic financial incident.",
     },
     {
       kind: "p",
-      text: "Prefer a provider-supplied event id when it is stable and unique. When it is not, hash a canonical subset of the payload fields that define business identity. Store the key in a unique index so the second insert fails fast and returns the same response shape as the first success.",
-    },
-    {
-      kind: "h2",
-      text: "Deterministic ID generation (no vendor key)",
+      text: "In distributed systems, **exactly-once delivery is a mathematical myth.** Network physics only guarantees at-least-once or at-most-once delivery. If you are building reliable systems, you must assume every webhook will be delivered multiple times, out of order, or malformed.",
     },
     {
       kind: "p",
-      text: "When upstream omits a stable id, derive one deterministically: canonicalise JSON (sorted keys, normalised numbers, strip volatile fields like received_at or trace ids that differ per delivery), then hash with a standard algorithm (SHA-256) and prefix with a namespace. Two different business events must never collapse to the same key; two retries of the same event must always collapse to the same key.",
+      text: "Here is the 2026 blueprint for building webhook receivers that survive hostile network environments, complete with the database economics of enforcing idempotency at scale.",
+    },
+    { kind: "hr" },
+    {
+      kind: "h2",
+      text: '1. The Idempotency Key & The "Transaction Tax"',
+    },
+    {
+      kind: "p",
+      text: "Idempotency means that no matter how many times you apply an operation, the result remains the same beyond the first application.",
+    },
+    {
+      kind: "p",
+      text: 'The most common mistake engineers make is the "Read-then-Write" anti-pattern:',
+    },
+    {
+      kind: "ol",
+      items: [
+        "`SELECT * FROM events WHERE webhook_id = '123'`",
+        "If it exists, return `200 OK`.",
+        "If it doesn't, process the business logic and `INSERT`.",
+      ],
+    },
+    {
+      kind: "p",
+      text: "Under high concurrency, two identical webhooks arriving milliseconds apart will both pass the `SELECT` check before either performs the `INSERT`. You still double-process.",
+    },
+    {
+      kind: "p",
+      text: "**The Database Constraint.** You must push the concurrency lock down to the database layer.",
     },
     {
       kind: "ul",
       items: [
-        "Property tests: same logical payload, different key order -- same id.",
-        "Negative tests: same shape but different business meaning -- different id.",
-        "Document what you exclude from the hash and why (timestamps, request ids).",
+        "**In PostgreSQL:** Use a unique constraint on the webhook ID and use `INSERT ... ON CONFLICT DO NOTHING`.",
+        "**In DynamoDB:** Use a `ConditionExpression` like `attribute_not_exists(WebhookID)`.",
       ],
-    },
-    {
-      kind: "h2",
-      text: "Three patterns and their DynamoDB bill",
-    },
-    {
-      kind: "p",
-      text: "In **ap-south-1**, DynamoDB is often the heartbeat of ingestion paths. The 'right' pattern is not only correctness -- it is **cost of correctness** under at-least-once delivery. Here is what three common patterns actually cost at 10M events/month.",
-    },
-    {
-      kind: "cost_table",
-      title: "DynamoDB rates -- ap-south-1, on-demand Standard table (April 2026)",
-      headers: ["Component", "Standard", "Standard-IA"],
-      rows: [
-        ["Writes (per million WRU)", "$1.25", "$1.56"],
-        ["Reads (per million RRU)", "$0.25", "$0.31"],
-        ["Storage (GB-month)", "$0.25", "$0.10"],
-        ["Streams reads (per 100k)", "$0.02", "$0.02"],
-      ],
-      note: "Standard-IA lowers storage cost but raises per-request cost. Use it for cold dedupe indexes or long-retention poison-message archives -- not hot replay paths.",
-    },
-    {
-      kind: "prompt_example",
-      title: "Pattern A vs B vs C -- 10M events/month cost comparison",
-      after: {
-        label: "Cost breakdown (ap-south-1 on-demand)",
-        language: "plaintext",
-        code: `Pattern A: Conditioned UpdateItem (single write, ConditionExpression)
-  Writes:  10M x $1.25/M  = $12.50/mo
-  Risk:    if function crashes after DB write but before side effect,
-           you look "idempotent" but lost the downstream work.
-
-Pattern B: TransactWriteItems (business row + outbox row, atomic)
-  Writes:  2x tax -> 10M x $2.50/M = $25.00/mo
-  Storage: more rows retained until dispatcher processes them
-  Benefit: atomic failure mode -- either both commit or neither does.
-
-Pattern C: Conditioned Put + DynamoDB Streams as outbox
-  Writes:  10M x $1.25/M  = $12.50/mo  (1x, no transaction)
-  Streams: 10M / 100k x $0.02 = $2.00/mo
-  TTL:     $0 write charge for TTL-driven deletion (async, see below)
-  Total:   ~$14.50/mo  -- roughly half the write bill of Pattern B
-
-Rule of thumb:
-  Pattern B when you need atomic failure semantics the product accepts.
-  Pattern C when stream consumer can tolerate at-least-once + TTL lag.
-  Pattern A only for stateless lookup paths, never for side-effect work.`,
-      },
-      note: "GSI write amplification is not included -- each GSI on the outbox table adds write units proportional to items written. Model GSIs explicitly before committing to a table design.",
-    },
-    {
-      kind: "h2",
-      text: "Transactional outbox for your own side effects",
-    },
-    {
-      kind: "p",
-      text: "If accepting a webhook must enqueue downstream work, write the dedupe row and the outbox message in one database transaction (Pattern B). A separate dispatcher reads the outbox and publishes to your bus or queue. That way you never acknowledge to the provider until you have a durable plan for processing. The 2x write cost is the price of that guarantee -- make the tradeoff explicit when you choose.",
-    },
-    {
-      kind: "h2",
-      text: "Streams + TTL as a lightweight outbox",
-    },
-    {
-      kind: "p",
-      text: "Pattern C treats the DynamoDB record itself as the outbox: a conditioned Put sets the idempotency key with a TTL, and Streams (`NEW_IMAGE`) drives the consumer. TTL deletions carry no write-unit charge in the way manual deletes do, which makes key cleanup operationally free -- until it is not.",
-    },
-    {
-      kind: "what_not",
-      paragraphs: [
-        "**Assume TTL is millisecond-precise.** Expiry is asynchronous; items persist hours after their TTL timestamp. Design replay and downstream timeouts assuming lag, not instant removal.",
-        "**Forget Streams are at-least-once.** Consumers must stay idempotent and tolerate duplicate stream records -- the stream removes the manual delete cost, not the ops discipline.",
-        "**Ignore ordering.** Streams guarantee per-partition order, not global order. Parallel Lambda consumers and fan-out patterns complicate 'exactly once side effect' assumptions.",
-        "**Skip the consumer DLQ.** Iterator age, batch failures, partial batch responses, and DLQ on the stream consumer still belong in the design -- Streams do not eliminate all operational tax.",
-      ],
-    },
-    {
-      kind: "h2",
-      text: "Storage tax on idempotency keys",
-    },
-    {
-      kind: "p",
-      text: "10M keys at ~100 B each is roughly 1 GB-month of new footprint, costing ~$0.25/mo on Standard storage. Benign at this scale. At 100M+ events, GB-month and GSI projection become architecture review items. Use **Standard-IA** when the dedupe store is append-mostly and read rarely -- IA's lower $/GB dominates savings as long as you are not running hot replay against it.",
-    },
-    {
-      kind: "h2",
-      text: "DLQs with intent",
-    },
-    {
-      kind: "p",
-      text: "Dead-letter queues are where optimism goes to die -- give them dashboards, owner runbooks, and replay tooling that preserves ordering constraints where they matter. Poison messages should fail closed: alert, sample payloads safely, and cap retries so a bad vendor does not starve the fleet.",
-    },
-    {
-      kind: "ul",
-      items: [
-        "Store long-lived poison message samples in **Standard-IA** -- read cost is higher, but storage cost is 60% lower, and you only read them during incidents.",
-        "Replay runbook should specify: who owns it, which ordering constraints apply, and what 'done' looks like (idempotent so safe to replay twice).",
-        "Alert on DLQ depth, not just queue age -- depth catches silent accumulation before it becomes an incident.",
-      ],
-    },
-    {
-      kind: "cost_note",
-      label: "FinOps note -- dedupe key storage",
-      paragraphs: [
-        "**10M keys x ~100 B = ~1 GB-month** of DynamoDB footprint at $0.25/mo (Standard). Negligible until 100M+ events/month when it becomes a design input.",
-        "**Delete vs TTL:** each explicit `DeleteItem` consumes write request units ($1.25/M). TTL-driven removal does not. At 10M events/month with 7-day retention, that is 10M potential deletes avoided -- **$12.50/mo in write cost** that Pattern C recovers vs manual cleanup.",
-        "**Standard-IA for cold archives:** poison-message stores and long-retention dedupe indexes read rarely. IA cuts storage from $0.25/GB to $0.10/GB -- a 60% saving on storage with a 24% higher read cost. Run the numbers against your actual read pattern before switching.",
-      ],
-      formula: "monthly_key_storage_gb = (event_count * avg_key_bytes_with_overhead) / 1_073_741_824\nmonthly_storage_cost = monthly_key_storage_gb * 0.25\nttl_write_savings = event_count * (1 / 1_000_000) * 1.25",
     },
     {
       kind: "region_note",
-      region: "ap-south-1 (Mumbai)",
+      region: "ap-south-1 — The Economic Tax",
       paragraphs: [
-        "DynamoDB on-demand write rates in Mumbai ($1.25/M WRU) match us-east-1. The cost war between Pattern B and C plays out identically across regions -- the $12.50/mo spread at 10M events is universal.",
-        "Where Mumbai diverges: **data transfer out** and **NAT Gateway** costs on the Lambda consumer side. If your stream processor runs in a VPC, model NAT data-processing ($0.045/GB) for high-volume Streams reads -- at 10M events with 1 KB payloads, that is ~10 GB of stream data, or ~$0.45/mo. At 100M events it is ~$4.50/mo and worth a VPC endpoint.",
+        "In DynamoDB, enforcing idempotency isn't free. If you use `TransactWriteItems` to guarantee a webhook record is saved *only* if the idempotency key doesn't exist, AWS charges you a **2× Write Penalty**. A standard write costs `1 WRU`. A transactional write costs `2 WRUs`.",
+        "If you process 10 million webhooks a month, that \"Transaction Tax\" doubles your ingestion bill.",
+      ],
+    },
+    {
+      kind: "system_alert",
+      label: "Principal's Fix — avoid the 2× penalty",
+      text:
+        "Use a single-table design where the `WebhookID` is the literal partition key. A standard `PutItem` with a `ConditionExpression` only costs `1 WRU`, avoiding the 2× transaction penalty while maintaining atomic safety for the dedupe insert.",
+    },
+    { kind: "hr" },
+    {
+      kind: "h2",
+      text: "2. Decoupling Ingress: The Outbox Pattern",
+    },
+    {
+      kind: "p",
+      text: "External providers (like Stripe, Razorpay, or ShipRocket) have strict timeout windows—usually 3 to 5 seconds. If you don't reply with a `200 OK` in that window, they consider it a failure and trigger a retry storm.",
+    },
+    {
+      kind: "p",
+      text: "You cannot run complex supply chain AI extractions or multi-table ledger updates within a 3-second ingress window.",
+    },
+    {
+      kind: "p",
+      text: "**The Rule:** The webhook receiver's only job is to save the raw payload to disk and return `200 OK`. This is the **Transactional Outbox Pattern**:",
+    },
+    { kind: "mermaid", code: OUTBOX_MERMAID },
+    {
+      kind: "ol",
+      items: [
+        "**Ingest & Dedupe:** The receiver attempts to write the raw JSON payload to DynamoDB with the idempotency condition. If it fails (duplicate), it still returns `200 OK` to the provider.",
+        "**Stream:** DynamoDB Streams captures the successful, deduplicated insert.",
+        "**Queue:** The stream pushes the payload to an SQS FIFO queue for ordered processing.",
+        "**Process Async:** Your core workers process the payload safely, immune to ingress timeouts.",
+      ],
+    },
+    { kind: "hr" },
+    {
+      kind: "h2",
+      text: '3. Dead Letter Queues (DLQs) and the "Poison Pill"',
+    },
+    {
+      kind: "p",
+      text: "What happens if the webhook payload is structurally valid JSON, but functionally broken? (For example, a supplier's API sends a `price` as a string `\"TBD\"` instead of an integer.)",
+    },
+    {
+      kind: "p",
+      text: "If your async worker tries to process it, it will crash. SQS will retry. It will crash again. This is a **Poison Pill**, and it blocks your entire FIFO queue from processing subsequent, healthy webhooks.",
+    },
+    {
+      kind: "p",
+      text: "**The Redrive Architecture.** Every webhook queue must have a Dead Letter Queue (DLQ).",
+    },
+    {
+      kind: "ol",
+      items: [
+        "Set the SQS `maxReceiveCount` to `3`.",
+        "If the worker fails to process the payload 3 times, SQS automatically routes the poison pill to the DLQ.",
+        "Your primary queue continues processing fresh webhooks seamlessly.",
+      ],
+    },
+    {
+      kind: "system_alert",
+      label: "Principal's Note: The Silent DLQ Anti-Pattern",
+      text:
+        "A DLQ is useless if no one monitors it. At i2b, every message that lands in a DLQ fires a PagerDuty alert and is mirrored to a Slack `#alerts-webhooks` channel. We use an automated \"Redrive API\" so that once we patch the parser bug, we can push the failed payloads from the DLQ back into the primary queue with a single command.",
+    },
+    { kind: "hr" },
+    {
+      kind: "h2",
+      text: "4. The Verification Middleware",
+    },
+    {
+      kind: "p",
+      text: "Never trust the payload. Webhook endpoints are public APIs. Attackers will barrage your endpoint with fake payloads to manipulate your database.",
+    },
+    {
+      kind: "p",
+      text: "You must verify the cryptographic signature sent in the headers (usually HMAC SHA-256).",
+    },
+    {
+      kind: "code_block",
+      language: "typescript",
+      title: "middleware/webhook-auth.ts",
+      code: WEBHOOK_AUTH_SNIPPET,
+    },
+    {
+      kind: "p",
+      text: "**The Webhook Readiness Checklist.** If you are deploying a webhook receiver to production tomorrow, ensure you have:",
+    },
+    {
+      kind: "ol",
+      items: [
+        "**Raw Body Caching:** If you parse the JSON before verifying the HMAC signature, the signature will fail. You must verify against the *raw* byte buffer.",
+        "**Atomic Idempotency:** A database-level unique constraint or conditional expression on `provider_event_id`.",
+        "**Timeout Decoupling:** Business logic pushed to an async queue behind the receiver.",
+        "**DLQ Alarms:** An active CloudWatch alarm on `ApproximateNumberOfMessagesVisible > 0` for your Dead Letter Queue.",
       ],
     },
   ],

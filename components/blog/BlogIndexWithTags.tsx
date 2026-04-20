@@ -7,6 +7,7 @@ import type { Article } from "@/data/articles";
 import { Badge } from "@/components/ui/Badge";
 import type { BlogDifficulty } from "@/data/blog/types";
 import { DifficultyChip } from "@/components/blog/DifficultyChip";
+import { isPrimaryBlogFilterTag } from "@/data/blog/primary-tags";
 
 export type BlogListingPost = {
   slug: string;
@@ -30,6 +31,19 @@ function tagsUsedOnSite(sitePosts: BlogListingPost[]): string[] {
   return [...set].sort((a, b) => a.localeCompare(b));
 }
 
+/** Primary theme tags first (accent hierarchy), then alphabetical secondary tags. */
+function sortTagsForFilter(tags: readonly string[]): string[] {
+  const primary: string[] = [];
+  const secondary: string[] = [];
+  for (const t of tags) {
+    if (isPrimaryBlogFilterTag(t)) primary.push(t);
+    else secondary.push(t);
+  }
+  primary.sort((a, b) => a.localeCompare(b));
+  secondary.sort((a, b) => a.localeCompare(b));
+  return [...primary, ...secondary];
+}
+
 function matchesTags(tags: string[], selected: Set<string>): boolean {
   if (selected.size === 0) return true;
   return tags.some((t) => selected.has(t));
@@ -37,7 +51,7 @@ function matchesTags(tags: string[], selected: Set<string>): boolean {
 
 export function BlogIndexWithTags({ sitePosts, articles }: Props) {
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
-  const filterTags = tagsUsedOnSite(sitePosts);
+  const filterTags = sortTagsForFilter(tagsUsedOnSite(sitePosts));
 
   const filteredSite = sitePosts.filter((p) => matchesTags(p.tags, selected));
   const filteredArticles = articles.filter((a) => matchesTags(a.tags, selected));
@@ -66,17 +80,25 @@ export function BlogIndexWithTags({ sitePosts, articles }: Props) {
           <div className="flex flex-wrap gap-1.5 min-w-0">
             {filterTags.map((tag) => {
               const on = selected.has(tag);
+              const primary = isPrimaryBlogFilterTag(tag);
+              const baseRing =
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] transition-[color,background-color,border-color,box-shadow] duration-150";
+              const offPrimary =
+                "border-[var(--accent)]/40 bg-[var(--accent-muted)] text-[var(--accent)] hover:bg-[var(--accent)]/15 hover:border-[var(--accent)]/55";
+              const offSecondary =
+                "border-[var(--border-color)] bg-[var(--bg)] text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--text)] hover:border-[var(--border-color)]";
+              const onCls =
+                "border-[var(--accent)] bg-[var(--accent)] text-white shadow-sm hover:bg-[var(--accent-hover)] hover:border-[var(--accent-hover)]";
+              const idleCls = primary ? offPrimary : offSecondary;
+              const chipCls = on ? onCls : idleCls;
               return (
                 <button
                   key={tag}
                   type="button"
                   onClick={() => toggleTag(tag)}
-                  className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] sm:text-xs font-medium leading-tight transition-[color,background-color,border-color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] ${
-                    on
-                      ? "border-[var(--accent)] bg-[var(--accent)] text-white shadow-sm hover:bg-[var(--accent-hover)] hover:border-[var(--accent-hover)]"
-                      : "border-[var(--border-color)] bg-[var(--bg)] text-[var(--text)]/85 hover:bg-[var(--accent-muted)] hover:border-[var(--accent)]/35 hover:text-[var(--accent)]"
-                  }`}
+                  className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] sm:text-xs font-medium leading-tight font-mono tabular-nums ${baseRing} ${chipCls}`}
                   aria-pressed={on}
+                  data-tag-tier={primary ? "primary" : "secondary"}
                 >
                   {tag}
                 </button>

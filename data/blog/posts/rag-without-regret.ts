@@ -1,78 +1,206 @@
 import type { BlogPost } from "../types";
 
+const MERMAID_PIPELINE = `graph TD
+    A[Raw Ingestion] --> B{Structure-Aware Chunker}
+    B --> C[Small-to-Big Mapping]
+    C --> D[Async Batch Embeddings]
+    D --> E[(Serverless Vector DB)]
+
+    F[User Query] --> G[Lexical Search BM25]
+    F --> H[Vector Search]
+    G --> I{Hybrid Reranker}
+    H --> I
+    I --> J[LLM Context Window]`;
+
+const INDEX_ROUTER_CODE = `// Always query via alias, never the hardcoded index name
+const ACTIVE_INDEX_ALIAS = "supply-chain-v2-prod";
+
+async function retrieveChunks(query: string) {
+  return await vectorDb.query({
+    index: ACTIVE_INDEX_ALIAS,
+    vector: await embed(query),
+    topK: 10
+  });
+}`;
+
 export const post: BlogPost = {
   slug: "rag-without-regret",
   title: "RAG Without Regret: Chunking, Embeddings, and Evaluating Retrieval Quality",
   description:
-    "How to size chunks, pick embedding models, and measure retrieval so RAG systems stay accurate under real document drift and query diversity.",
+    "Chunking as a product decision, hybrid retrieval, embedding economics in ap-south-1, reranker tax, shadow indexes, and how to evaluate cost per correct answer — without blaming the LLM for retrieval failures.",
   publishedAt: "2026-04-18",
   readTime: "12 min read",
   difficulty: "Deep dive",
-  tags: ["RAG", "LLM", "Embeddings", "Search", "MLOps"],
+  tags: ["RAG", "LLM", "Embeddings", "Search", "MLOps", "FinOps"],
   sections: [
     {
       kind: "p",
-      text: "Retrieval-augmented generation fails in predictable ways: chunks that split across semantic boundaries, embeddings that collapse paraphrases you care about, and offline benchmarks that look nothing like production queries. This post is a practical checklist for getting the retrieval layer right before you tune prompts or swap models.",
-    },
-    {
-      kind: "h2",
-      text: "Chunking is a product decision, not a tokenizer setting",
+      text: "We burned three days debugging a hallucination in our B2B supply chain agent before realizing the LLM wasn't the problem.",
     },
     {
       kind: "p",
-      text: "Fixed token windows are easy to implement and hard to defend. Structure-aware chunking -- by heading, section, or logical record -- usually beats naive overlap for factual Q&A. When documents are tables or logs, prefer row- or event-sized units with a small amount of trailing context so the model sees column names or field meanings.",
+      text: "A user asked for the import tariff on a specific electronics shipment. The agent confidently hallucinated a completely invalid Harmonized Tariff Schedule (HTS) code. We tweaked the prompt. We lowered the temperature. We upgraded the model. Nothing worked.",
+    },
+    {
+      kind: "p",
+      text: "The actual root cause? A poorly-timed **PDF page break**.",
+    },
+    {
+      kind: "p",
+      text: "Our naive chunking strategy had sliced a 10-digit HTS code perfectly in half across two different vector chunks. The retrieval engine only fetched the first half. The LLM, trying to be helpful, hallucinated the remaining five digits.",
+    },
+    {
+      kind: "p",
+      text: "Retrieval-Augmented Generation (RAG) fails at the retrieval layer **90%** of the time, but we blame the model because it's the last node in the chain. Here is how to build a retrieval layer in **2026** that actually survives production constraints, complete with the unit economics of doing it at scale.",
+    },
+    { kind: "hr" },
+    {
+      kind: "h2",
+      text: "1. Chunking is a Product Decision, Not a Tokenizer Setting",
+    },
+    {
+      kind: "p",
+      text: "The default tutorial approach—chunking by a fixed token count (e.g. `512 tokens`) with a `50 token` overlap—is an architectural trap. It destroys semantic boundaries.",
+    },
+    {
+      kind: "p",
+      text: "Instead of fixed windows, we use **Contextual Metadata**. In our ingestion pipeline, we don't just store the text; we store the provenance. If a chunk contains a table row, the metadata must contain the table headers.",
+    },
+    {
+      kind: "p",
+      text: "If you are dealing with complex compliance documents or supply chain ledgers, adopt a **Small-to-Big Retrieval** pattern:",
+    },
+    {
+      kind: "ol",
+      items: [
+        "Embed and index highly granular, small chunks (`~100 tokens`).",
+        "Store the large parent document ID in the metadata.",
+        "When the vector search hits the small chunk, return the *parent document* to the LLM.",
+      ],
+    },
+    {
+      kind: "p",
+      text: "You search small for precision, but you feed the LLM big for context.",
+    },
+    {
+      kind: "h2",
+      text: "2. The Retrieval Pipeline (Architecture)",
+    },
+    { kind: "mermaid", code: MERMAID_PIPELINE },
+    {
+      kind: "h2",
+      text: "3. The 2026 Embedding Economics (ap-south-1)",
+    },
+    {
+      kind: "p",
+      text: "Embedding model choice is about query-document overlap, not benchmark leaderboards. However, the operational cost of *how* you embed matters immensely, especially when operating out of `ap-south-1` where data transfer and latency budgets are tight.",
+    },
+    {
+      kind: "p",
+      text: "If you are processing millions of tokens for an internal ledger, synchronous API calls will bankrupt your latency and your budget. In **2026**, **Async Batching** is mandatory.",
+    },
+    {
+      kind: "p",
+      text: "**The Batch Ingestion Baseline (per 1M Tokens)**",
     },
     {
       kind: "ul",
       items: [
-        "Measure chunk entropy and median length; huge variance often means your splitter is fighting the document format.",
-        "Keep one clear 'owner' of a fact per chunk where possible; duplicate facts across chunks only when ambiguity is intentional.",
-        "Version your chunking rules with your index so you can replay ingestion when the strategy changes.",
+        "**OpenAI 3-small:** `$0.02` (The efficiency king for general RAG).",
+        "**Google Embedding 2:** `$0.15` (Mandatory if you need multimodal text+image overlap).",
+        "**Voyage-3-large:** `$0.18` (High accuracy for technical/API docs).",
+        "**Self-hosted (BGE-M3):** `$0.00` compute, but high DevOps overhead.",
       ],
     },
     {
-      kind: "h2",
-      text: "Contextual metadata and provenance",
-    },
-    {
-      kind: "p",
-      text: "Do not just store text -- store provenance you can defend: source document id, URI or object key, page or byte span, section heading path, ingest job id, chunker semver, and a content hash. When a user or auditor asks 'why did the model say this on Tuesday?', the answer should be a join, not a shrug. That metadata also powers safe re-embeds: you know exactly which rows to invalidate when a PDF is replaced.",
+      kind: "system_alert",
+      label: "Principal's Note: The 50% Batch Discount",
+      text: "Both **Anthropic** and **Google** offer a 50% discount for 24-hour latency batch jobs. Initial indexing of `100M tokens` using standard APIs costs `$2.00`. Using the Batch API, it drops to `$1.00`. Build your ingestion pipelines asynchronously from Day 1.",
     },
     {
       kind: "h2",
-      text: "Small-to-big retrieval (validate this)",
+      text: "4. The Reranker Tax",
     },
     {
       kind: "p",
-      text: "Search small, answer big: retrieve on tight child chunks (sentence, table row, tariff line) for precision, then hydrate with the parent section or page window before calling the LLM. The model sees coherent context; the index keeps sharp boundaries for embedding geometry. Skipping this is how you get confident answers built from two halves of a code that never co-occurred in any single chunk.",
+      text: "Simple vector search (cosine similarity) often misses nuance, especially with domain jargon. A user searching for \"failed delivery\" might get chunks about \"successful delivery\" because the vectors are near each other in the latent space.",
+    },
+    {
+      kind: "p",
+      text: "Adding a cross-encoder or reranker (like Cohere Rerank 4) fixes this, but introduces **The Rerank Tax**.",
     },
     {
       kind: "ul",
       items: [
-        "Golden queries should assert both 'correct doc id' and 'correct span within doc' for structured codes.",
-        "If MRR looks good but humans report misses, compare child-hit vs parent-hydration failure rates before touching temperature.",
-        "Cap parent expansion by token budget with a deterministic truncation order (headings first, then body).",
+        "**Cohere Rerank 4 Fast:** `~$2.00` per 1,000 searches.",
+        "**The Scale Problem:** If your app does `10,000` searches a day, you are adding `$600/month` just to sort an array.",
       ],
     },
     {
-      kind: "h2",
-      text: "Embeddings: fit the geometry to the task",
-    },
-    {
       kind: "p",
-      text: "Dense retrieval is cheap at scale but brittle when users ask with jargon, typos, or cross-lingual phrasing. I treat hybrid BM25+vector as overrated as a default for typical SaaS docs and runbooks: lexical variance is often too low to justify the index and ops complexity. Where I have seen hybrid pay is high lexical variance -- legal citations, SKU-heavy catalogues, mixed-language support corpora -- after we proved lift on a frozen production query set. Otherwise I reach for a small reranker on top-k vectors first; it is usually cheaper to ship and easier to reason about than dual-index sprawl.",
+      text: "**The Mitigation:** Only invoke the reranker if your initial metadata filtering leaves you with more than `50` candidate chunks. If your `tenant_id` and `date_range` filters narrow the search space to 10 chunks, skip the reranker and let the LLM sort it out.",
     },
     {
       kind: "h2",
-      text: "Evaluate retrieval like you evaluate APIs",
+      text: '5. Index Lifecycle and the "Pivot Tax"',
     },
     {
       kind: "p",
-      text: "Golden sets of (query, expected doc ids or spans) are the minimum. Layer on adversarial queries: negations, multi-hop paraphrases, and time-bounded questions if your data is temporal. Track precision@k, MRR, and calibrated abstention -- when nothing is relevant, the system should say so instead of hallucinating a confident answer.",
+      text: "You will eventually need to change your embedding model or your chunking strategy. This requires a full re-index.",
     },
     {
       kind: "p",
-      text: "Treat ingestion, embedding, and index refresh as part of the release train. RAG without regret means you can change chunking or models, re-embed, and prove -- with numbers -- that users are not worse off than last week.",
+      text: "The compute cost of a mistake is surprisingly cheap. Re-embedding `50,000` documents (`~100M tokens`) costs about `$7.00` in API fees.",
+    },
+    {
+      kind: "p",
+      text: "The real cost is **Operational**. You cannot overwrite a live index. You must deploy a **Shadow Index**. For the duration of the migration (which could take days to validate), you are paying double for your Serverless Vector DB storage (`~$0.33/GB`), doubling your write capacity units, and managing dual-write logic in your application layer.",
+    },
+    {
+      kind: "p",
+      text: "Treat your chunking logic as a versioned API contract. Never mutate an index; alias it.",
+    },
+    {
+      kind: "code_block",
+      language: "typescript",
+      title: "lib/rag/index-router.ts",
+      code: INDEX_ROUTER_CODE,
+    },
+    {
+      kind: "h2",
+      text: "6. Evaluation: Cost per Correct Answer",
+    },
+    {
+      kind: "p",
+      text: "Offline evaluation metrics (MRR, NDCG) are useless if your test set doesn't look like production queries. Stop testing your RAG system with factual trivia. Test it with adversarial, misspelled, context-heavy queries pulled from your actual application logs.",
+    },
+    {
+      kind: "p",
+      text: "Track the **Cost per Correct Answer**.",
+    },
+    {
+      kind: "ul",
+      items: [
+        "**Scenario A (Vector Only):** `$0.01` per query. Accuracy: 85%.",
+        "**Scenario B (Vector + Rerank + Pro LLM):** `$0.05` per query. Accuracy: 88%.",
+      ],
+    },
+    {
+      kind: "p",
+      text: "Is that 3% gain in precision worth a 500% increase in unit cost? For a medical compliance bot, yes. For an internal HR policy chatbot, absolutely not.",
+    },
+    {
+      kind: "h2",
+      text: "The Week One Checklist",
+    },
+    {
+      kind: "ol",
+      items: [
+        "**Implement Metadata Filtering:** Never run a global vector search. Filter by tenant, document type, or date first.",
+        "**Switch to Small-to-Big:** Embed paragraphs, retrieve chapters.",
+        "**Pin the Embedding Model Version:** `text-embedding-3-small` is an alias. Pin to the specific immutable version so your vectors don't silently drift.",
+        "**Log the Un-augmented Response:** Always log what the LLM would have said *without* the RAG context. It is the only way to measure if your retrieval is actually adding value.",
+      ],
     },
   ],
 };

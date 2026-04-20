@@ -4,9 +4,9 @@ import { postTitleBySlug } from "../post-titles";
 export const narrativeAppendix: NarrativeAppendix = {
   warStory: {
     context:
-      "Composite: ~220 microservices, Jaeger backend, aggressive 100% 'dev parity' sampling leaking toward prod.",
+      "Composite: distributed tracing across a microservice fleet at ~5k RPS; Datadog invoice two weeks later—roughly **20:1** observability vs compute spend.",
     broke:
-      "Trace storage bill jumped ~2.4× quarter-on-quarter; trace queries p95 beyond ~8s during incidents -- exactly when people needed speed.",
+      "Finance escalated before we had tail policies; we were indexing noise while rare 500s vanished under head sampling—MTTR and budget both screamed.",
     wrong_first:
       "We blanket-dropped spans in the UI instead of fixing cardinality -- teams stopped trusting traces during outages.",
     solution:

@@ -1,122 +1,187 @@
 import type { BlogPost } from "../types";
 
+const ROUTER_MERMAID = `graph TD
+    A[User Request] --> B{Semantic Router}
+
+    B -- "Classification / Simple RAG" --> C[Gemini 3.1 Lite]
+    B -- "Drafting / Logic" --> D[Claude 4.7 Sonnet]
+    B -- "Requires Multi-step Reasoning" --> E[Claude 4.7 Opus]
+
+    C --> F[Format Response]
+    D --> F
+    E --> F
+
+    style C stroke:#00F0FF,stroke-width:2px
+    style D stroke:#E5E7EB,stroke-width:1px
+    style E stroke:#E5E7EB,stroke-width:1px`;
+
+const LLM_TELEMETRY_SNIPPET = `import { Anthropic } from '@anthropic-ai/sdk';
+import { metrics } from './datadog';
+
+const anthropic = new Anthropic();
+
+export async function invokeModel(prompt: string, context: { tenantId: string; featureId: string }) {
+  // 1. Execute the call
+  const response = await anthropic.messages.create({
+    model: 'claude-3-7-sonnet-20250219',
+    max_tokens: 1024,
+    messages: [{ role: 'user', content: prompt }],
+  });
+
+  // 2. Extract Token Usage
+  const inputTokens = response.usage.input_tokens;
+  const outputTokens = response.usage.output_tokens;
+
+  // 3. Calculate Exact Cent Cost
+  const costUsd = (inputTokens * 0.000003) + (outputTokens * 0.000015);
+
+  // 4. Emit to Observability Platform
+  metrics.histogram('llm.request.cost', costUsd, [
+    \`tenant:\${context.tenantId}\`,
+    \`feature:\${context.featureId}\`,
+    'model:claude-4.7-sonnet',
+  ]);
+
+  return response.content;
+}`;
+
 export const post: BlogPost = {
   slug: "llm-api-token-budgets",
   title: "LLM API Usage: Token Budgets, Model Routing, and Per-Feature Cost Attribution",
   description:
-    "Making LLM spend predictable: budgets, routing rules, and telemetry that ties dollars to product surfaces.",
+    "Opus tax vs utility tiers in ap-south-1, semantic router gatekeeping, Datadog-style cost histograms per tenant/feature, value-per-token framing, and a production FinOps checklist—so GenAI features do not eat gross margin.",
   publishedAt: "2026-04-13",
   readTime: "9 min read",
   difficulty: "Intermediate",
-  tags: ["LLM", "Cost", "FinOps", "APIs"],
+  tags: ["LLM", "Cost", "FinOps", "APIs", "Architecture"],
   sections: [
     {
       kind: "p",
-      text: "Token meters belong next to request logs. Without per-feature attribution, every team assumes someone else owns the bill spike. Start by tagging every call with product area, tenant tier, and workflow id -- then the routing decision becomes obvious.",
-    },
-    {
-      kind: "h2",
-      text: "The model rate card: tiers are not optional",
+      text: "In February 2026, one of our internal supply chain extraction agents fell into an infinite retry loop over a weekend. By Monday morning, a feature that usually cost `$50/day` had burned through `$1,200`.",
     },
     {
       kind: "p",
-      text: "Most teams default all traffic to a frontier model and discover the bill after the fact. The economics only work if you treat LLMs as tiered compute: route cheap utility tasks to cheap models and reserve expensive models for the tail that actually needs them.",
+      text: "The root cause wasn't the loop itself—bugs happen. The root cause was that the engineers had hardcoded `claude-4.7-opus` as the default model for a trivial JSON formatting task.",
+    },
+    {
+      kind: "p",
+      text: "Treating an LLM API like a traditional REST API is a catastrophic financial mistake. Traditional APIs have flat or negligible compute costs per request. LLMs charge a variable, unbounded \"intelligence tax\" based on input length, output length, and reasoning depth.",
+    },
+    {
+      kind: "p",
+      text: "If you are scaling GenAI features in production, you cannot just look at your monthly AWS or Google Cloud bill. You need architectural model routing, strict token budgets, and per-feature cost attribution. Here is the FinOps blueprint.",
+    },
+    { kind: "hr" },
+    {
+      kind: "h2",
+      text: '1. The "Opus Tax" & The 2026 Rate Card',
+    },
+    {
+      kind: "p",
+      text: "In the `ap-south-1` region, the gap between \"Frontier\" models and \"Utility\" models is no longer marginal; it is an order of magnitude.",
     },
     {
       kind: "cost_table",
-      title: "Illustrative API rate card -- per 1M tokens (April 2026 placeholders, verify at publish)",
-      headers: ["Model tier", "Input ($/1M)", "Output ($/1M)", "Best for"],
+      title: "2026 rate card — illustrative $/1M tokens (verify at publish)",
+      headers: ["Model tier", "Input ($/1M)", "Output ($/1M)", "Architectural role"],
       rows: [
-        ["GPT-5.4 Pro (illustrative)", "$30.00", "$180.00", "High-stakes logic, complex coding"],
-        ["GPT-5.4 Standard (illustrative)", "$2.50", "$15.00", "Advanced reasoning, creative work"],
-        ["Gemini 3.1 Pro (illustrative)", "$2.00", "$12.00", "Long-context RAG"],
-        ["Gemini 3.1 Flash (illustrative)", "$0.50", "$3.00", "Real-time chat, tool use"],
-        ["Gemini 3.1 Lite (illustrative)", "$0.25", "$1.50", "Classification, extraction, routing"],
+        ["Claude 4.7 Opus", "$15.00", "$75.00", "High-stakes conflict resolution"],
+        ["Claude 4.7 Sonnet", "$3.00", "$15.00", "Complex reasoning, formatting"],
+        ["Gemini 3.1 Pro", "$2.00", "$10.00", "Massive contexts (1M+ tokens)"],
+        ["Gemini 3.1 Lite", "$0.25", "$1.50", "Fast extraction, classification, routing"],
       ],
-      note: "Pro-only defaults are a FinOps liability once volume exists. Routing is the economic architecture move -- not prompt optimisation alone.",
-    },
-    {
-      kind: "h2",
-      text: "The 80/20 routing math",
+      note: "Rates are April 2026 authoring placeholders—replace with live vendor pricing and exact SKUs before publishing.",
     },
     {
       kind: "p",
-      text: "Route 80% of traffic -- classification, extraction, formatting, routing calls themselves -- through the cheapest capable model. Reserve the remaining 20% for synthesis, multi-step reasoning, and tasks where accuracy is revenue-critical. The savings are non-linear because cheap models are an order of magnitude cheaper, not 20% cheaper.",
+      text: "If your application processes **10 million** tokens a month, a naive architecture defaulting to Opus costs **`$150+`**. A routed architecture utilizing Lite for **80%** of tasks costs **`~$20`**.",
     },
     {
-      kind: "prompt_example",
-      title: "Naive vs routed -- 10M tokens/month cost comparison",
-      after: {
-        label: "Cost breakdown (authoring scenario -- recompute with your blend)",
-        language: "plaintext",
-        code: `-- Scenario A: naive (100% GPT-5.4 Standard) --
-Blended effective rate: ~$17.50 / M tokens (3:1 input:output ratio)
-10M tokens x $17.50 = ~$175 / month
-
--- Scenario B: routed (80/20 split) --
-80% -> Gemini 3.1 Lite at blended ~$1.75 / M
-  8M x $1.75 = ~$14 / month
-20% -> GPT-5.4 Standard at blended ~$17.50 / M
-  2M x $17.50 = ~$35 / month
-Total: ~$49 / month
-
--- Savings: ($175 - $49) / $175 = ~72% --
-
-Savings ratio grows when the cheap lane is lighter
-(Flash/Lite-class) or Standard share shrinks after eval gates.
-Router cost: a thin Lite call per request adds tokens --
-usually second-order to mis-routing everything to Pro.`,
-      },
-      note: "Show one worked table with explicit blend definition (e.g. 3:1 input:output). State your token volume definition: billed input+output or input-only -- pick one and stick to it.",
+      kind: "system_alert",
+      label: "Principal's Note: The 80/20 Routing Rule",
+      text:
+        "Never use a frontier model to do a utility model's job. If you are extracting dates from an invoice, categorizing a user's intent, or summarizing a short chat, **Gemini 3.1 Lite** or **Claude Haiku** will achieve 99% of the accuracy at 1/60th of the cost. Reserve Opus for the final 5% of tasks where strategic reasoning is non-negotiable.",
     },
+    { kind: "hr" },
     {
       kind: "h2",
-      text: "Budgets as product constraints",
+      text: "2. The Semantic Router Architecture",
     },
     {
       kind: "p",
-      text: "Soft caps trigger summarisation or cheaper models; hard caps return graceful degradation. Expose remaining budget to the UX for long sessions so power users understand why depth was trimmed. Finance should see the same dimensions you use for alerts.",
+      text: 'You enforce the 80/20 rule by placing a **"Gatekeeper"** in front of your LLM calls. This is a fast, deterministic routing layer that evaluates the complexity of the request before spending money on it.',
     },
-    {
-      kind: "h2",
-      text: "Instrumentation: the metadata blueprint",
-    },
+    { kind: "mermaid", code: ROUTER_MERMAID },
     {
       kind: "p",
-      text: "To attribute spend and tune routing, every LLM call should carry a consistent dimension set. Build this as middleware or gateway middleware so it is not optional for individual features.",
+      text: "**How it works:**",
     },
     {
-      kind: "cost_table",
-      title: "Metadata blueprint -- mandatory tagging dimensions",
-      headers: ["Dimension", "Example value", "Purpose"],
-      rows: [
-        ["feature", "supply-chain-extraction", "Stable catalog id, not free text"],
-        ["tenant", "enterprise-a", "Align with billing entity"],
-        ["workflow", "intent/hts-classification", "Drives routing table keys"],
-        ["model_chosen", "gemini-3.1-lite", "Post-decision log"],
-        ["outcome", "success | validation_fail | user_abort", "Feeds value metrics, not only cost"],
+      kind: "ol",
+      items: [
+        "A user uploads a supply chain document.",
+        "The router uses a fast `regex` or a tiny embedded classifier (running locally) to detect keywords like \"legal dispute\" or \"contract violation.\"",
+        "If no complex triggers are found, it routes the extraction prompt to the `$0.25` model.",
+        "If it detects high-risk context, it escalates to the `$15.00` model.",
       ],
-      note: "Propagate headers (x-tenant-id, x-feature-id, x-workflow-id) into structured logs and metric labels. Never duplicate payloads or PII into observability backends -- mask or omit raw prompts in shared dashboards.",
+    },
+    { kind: "hr" },
+    {
+      kind: "h2",
+      text: "3. The Metadata Blueprint (Cost Attribution)",
+    },
+    {
+      kind: "p",
+      text: 'When the CFO asks, "Why did our Anthropic bill double this month?", answering "User engagement went up" is unacceptable. You must be able to say, "The \'Invoice Extractor\' feature saw a 40% spike in usage from Tenant A."',
+    },
+    {
+      kind: "p",
+      text: "To do this, you must wrap the official SDKs in a telemetry middleware that injects metadata into every single call.",
+    },
+    {
+      kind: "code_block",
+      language: "typescript",
+      title: "middleware/llm-telemetry.ts",
+      code: LLM_TELEMETRY_SNIPPET,
+    },
+    {
+      kind: "p",
+      text: "If you do not enforce this pattern, your LLM spend is a black box. By tagging `tenant_id` and `feature_id`, you can generate Grafana dashboards that calculate your actual **Cost of Goods Sold (COGS)** per tenant.",
+    },
+    { kind: "hr" },
+    {
+      kind: "h2",
+      text: '4. Measuring "Value per Token"',
+    },
+    {
+      kind: "p",
+      text: 'Once you have instrumentation, you must shift your mindset from "Cost Tracking" to "Value Tracking."',
+    },
+    {
+      kind: "p",
+      text: "An API call is only \"expensive\" if it fails to generate business value.",
+    },
+    {
+      kind: "ul",
+      items: [
+        "A **`$0.001`** call to a cheap model that hallucinates an HTS code and delays a shipment at customs is **incredibly expensive.**",
+        "A **`$0.10`** call to Opus that successfully negotiates a vendor discount is **practically free.**",
+      ],
+    },
+    {
+      kind: "p",
+      text: "**The Metric:** **Cost per Successful Feature Action.** Track the total LLM spend of a feature divided by the number of successful, un-reverted user actions. If your AI chat feature costs **`$500/month`** but only resolves **`10`** tickets, your Cost Per Action is **`$50`**. You are better off hiring a human.",
     },
     {
       kind: "h2",
-      text: "Model routing",
+      text: "The FinOps Readiness Checklist",
     },
     {
-      kind: "p",
-      text: "Route by task class: small models for classification and extraction, larger models for synthesis and multi-step reasoning. Cache deterministic sub-results. Re-evaluate routing when pricing or latency curves move -- routing tables deserve version control and canary analysis like any other config.",
-    },
-    {
-      kind: "p",
-      text: "Unit economics matter beyond total spend: track **cost per successful feature action**, not only rising spend bars. A $0.10 model call that unblocks a revenue workflow reads differently from a $0.001 call that fails silently. Pair cost dashboards with outcome dashboards so routing decisions are grounded in value, not just savings.",
-    },
-    {
-      kind: "region_note",
-      region: "ap-south-1 (Mumbai)",
-      paragraphs: [
-        "LLM API list pricing is typically global, but data transfer out of Mumbai VPCs to third-party API endpoints adds a small percentage tax at very large context volumes. Treat ~2-3% as illustrative; measure with VPC flow logs and billing dimensions.",
-        "Optimization angle: run Gemini via Vertex AI in ap-south-1 (or equivalent regional inference) so bulk traffic stays on provider backbone paths you can contract and monitor, instead of routing all traffic to a distant global endpoint when latency and egress both matter.",
-        "NAT Gateway data-processing in Mumbai ($0.045/GB) applies to any VPC-private Lambda or ECS function making outbound LLM API calls. At 10M tokens/month with 2 KB average payload, that is ~20 GB outbound, or ~$0.90/mo from NAT alone -- at 100M tokens it becomes ~$9/mo and worth a VPC endpoint evaluation.",
+      kind: "ol",
+      items: [
+        "**Hard Max Tokens:** Never leave `max_tokens` unbound. If you only need a JSON boolean, set `max_tokens: 50`. Do not let the model ramble for `$2.00`.",
+        "**Circuit Breakers:** Implement a Redis-backed token bucket rate limiter. If a specific `tenant_id` exceeds `$10` in an hour, fallback to a cached response or an error state.",
+        "**Model Abstraction:** Never hardcode model strings (for example `gpt-4o`) in your business logic. Use internal aliases (`ModelTier.REASONING`) so you can hot-swap providers via environment variables when pricing wars occur.",
       ],
     },
   ],

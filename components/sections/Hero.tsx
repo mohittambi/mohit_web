@@ -40,6 +40,8 @@ export function Hero() {
             key={line}
             className="absolute whitespace-nowrap font-mono text-[11px] text-[var(--accent)] opacity-[0.045] dark:opacity-[0.06]"
             style={{
+              fontFamily:
+                "var(--font-code), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
               top: `${(i / CODE_LINES.length) * 100}%`,
               left: `${(i % 2 === 0 ? -2 : 30)}%`,
               transform: `rotate(-6deg)`,

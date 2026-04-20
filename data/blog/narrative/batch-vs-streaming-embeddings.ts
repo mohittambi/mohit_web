@@ -4,7 +4,7 @@ import { postTitleBySlug } from "../post-titles";
 export const narrativeAppendix: NarrativeAppendix = {
   warStory: {
     context:
-      "Composite: nightly corpus ~900 GB raw text equivalent; streaming updates from CMS; vector DB with HNSW.",
+      "Composite (i2b-shaped): chunking strategy change forced **4M** historical supply-chain docs re-embed; real-time path would have been ~72h + org-wide **429** storms.",
     broke:
       "Double-indexed vectors after retry logic in batch workers -- ~12% duplicate nearest-neighbour noise in eval until we caught idempotency gaps.",
     wrong_first:

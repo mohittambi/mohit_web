@@ -1,113 +1,218 @@
 import type { BlogPost } from "../types";
 
+const DUAL_PIPELINE_MERMAID = `graph TD
+    A[Data Source] --> B{Pipeline Router}
+
+    B -- "Single Doc (Real-time)" --> C[SQS FIFO Queue]
+    C --> D[Lambda / ECS Worker]
+    D -- "Sync HTTP Call" --> E[Standard LLM API]
+
+    B -- "Corpus / Evals (>1k Docs)" --> F[Upload to S3]
+    F --> G[ECS Task: Generate JSONL]
+    G -- "Upload File" --> H[LLM Batch API]
+
+    E --> I[(Vector Database)]
+    H -- "Async Webhook" --> J[ECS Task: Parse JSONL]
+    J --> I
+
+    style C stroke:#E5E7EB,stroke-width:1px
+    style F stroke:#00F0FF,stroke-width:2px
+    style G stroke:#E5E7EB,stroke-width:1px
+    style H stroke:#00F0FF,stroke-width:2px`;
+
+const BATCH_UPLOADER_TS = `// Generating the exact JSONL format required for OpenAI Batch API
+import fs from 'fs';
+
+export function createBatchFile(documents: { id: string; text: string }[]) {
+  const stream = fs.createWriteStream('/tmp/batch_input.jsonl');
+
+  for (const doc of documents) {
+    const request = {
+      custom_id: \`doc_\${doc.id}\`, // Critical for mapping results back
+      method: "POST",
+      url: "/v1/embeddings",
+      body: {
+        model: "text-embedding-3-small",
+        input: doc.text,
+      },
+    };
+    stream.write(JSON.stringify(request) + '\\n');
+  }
+
+  stream.end();
+  return '/tmp/batch_input.jsonl';
+}`;
+
 export const post: BlogPost = {
   slug: "batch-vs-streaming-embeddings",
   title: "Batch vs Streaming for Embeddings and Eval Harnesses",
   description:
-    "When to batch-embed corpora, when to stream, and how to structure eval jobs so they finish on time and on budget.",
+    "i2b-style re-embed at scale: 50% Batch API economics, dual fast/slow pipelines with S3 + JSONL + webhooks, eval harness CI, and Redis token buckets on the streaming path.",
   publishedAt: "2026-04-11",
   readTime: "7 min read",
   difficulty: "Deep dive",
-  tags: ["ML", "Pipelines", "Embeddings", "Batch"],
+  tags: ["ML", "Pipelines", "Embeddings", "Batch", "FinOps", "Architecture"],
   sections: [
     {
       kind: "p",
-      text: "Batch jobs excel at full-corpus refreshes and backfills; streaming paths excel at near-real-time ingestion. Mixing them without coordination produces duplicate vectors and torn reads during queries.",
-    },
-    {
-      kind: "h2",
-      text: "First-time write tax: batch is not free compute",
+      text: "There is a distinct moment in an AI team's maturity when they realize that making **10 million** synchronous HTTP requests to an LLM provider is a terrible idea.",
     },
     {
       kind: "p",
-      text: "Batch APIs offer a ~50% discount versus synchronous list prices in exchange for latency tolerance (minutes to 24 hours). The catch: first-time backfills pay full write-shaped economics for cold prefixes -- no cache hits yet. Second pass and subsequent streaming traffic is where cache read rates dominate.",
-    },
-    {
-      kind: "cost_table",
-      title: "First-time batch rates -- per 1M tokens (April 2026 placeholders, verify at ship)",
-      headers: ["Provider / model", "First-time input (batch)", "Output (batch)", "Subsequent input (cache hit)"],
-      rows: [
-        ["Anthropic Claude 4.7 Sonnet", "$1.87", "$7.50", "$0.15"],
-        ["Anthropic Claude 4.7 Opus", "$3.12", "$12.50", "$0.25"],
-        ["Google Gemini 3.1 Pro", "$1.10", "$6.00", "$0.10"],
-        ["Google Gemini 3.1 Flash", "$0.27", "$1.50", "$0.02"],
-      ],
-      note: "Tokenizer tax (Anthropic 4.7): up to ~35% more tokens for the same raw text vs 4.6 expectations -- effective $/document can rise even when list $/M falls. Tokenize a stratified sample of production docs before committing batch SLAs.",
-    },
-    {
-      kind: "h2",
-      text: "Batch for throughput, streaming for freshness",
-    },
-    {
-      kind: "cost_table",
-      title: "Batch vs streaming trade-off matrix",
-      headers: ["Dimension", "Streaming (near-real-time)", "Batch (asynchronous)"],
-      rows: [
-        ["Latency", "<~2s per call", "Minutes to 24h job SLA"],
-        ["Cost (relative)", "~100% of synchronous rate", "~50% of synchronous (authoring)"],
-        ["Caching value", "High once prefixes are warm", "Low on first pass -- write tax dominates"],
-        ["Best for", "User-facing paths, tight SLO", "Re-index, re-embed, nightly eval"],
-        ["Failure mode", "Per-call retry, low blast radius", "Full job retry without checkpointing = 2x bill"],
-      ],
-      note: "Total pipeline cost = batch inference + S3 manifest storage + orchestrator + vector DB write units + failed-line retries. Put it in one FinOps slide before committing to batch SLAs.",
-    },
-    {
-      kind: "h2",
-      text: "Checkpointing at scale: the resume blueprint",
+      text: "At **i2b**, our B2B supply chain engine relies on vector search to match incoming purchase orders against historical ledgers. When we changed our chunking strategy last month, we had to re-embed **4 million** historical documents.",
     },
     {
       kind: "p",
-      text: "A 100M-token backfill is multi-hour. A crash at 90% must not force a full duplicate bill. Checkpoint with JSONL manifests so each line is an atomic unit. On failure, diff completed output request IDs against the input manifest and re-submit only missing lines.",
+      text: "If we had pushed that payload through our standard real-time ingestion pipeline, it would have taken **72 hours**, triggered massive `429 Too Many Requests` throttling storms across our organization, and cost full retail price.",
+    },
+    {
+      kind: "p",
+      text: "AI workloads are fundamentally asynchronous. If a user is not actively waiting for a response, routing AI workloads through synchronous APIs is architectural malpractice. Here is the engineering blueprint for splitting your ML pipelines into **Real-time Streaming** and **Offline Batch**, specifically targeting the **50%** \"Batch Discount\" economics.",
+    },
+    { kind: "hr" },
+    {
+      kind: "h2",
+      text: '1. The Asynchronous Discount (The 50% Rule)',
+    },
+    {
+      kind: "p",
+      text: "Both OpenAI and Anthropic realized that managing synchronous burst traffic requires massive, expensive compute buffers. To incentivize developers to smooth out the load, they introduced **Batch APIs**.",
+    },
+    {
+      kind: "p",
+      text: "The contract is simple: You upload a **JSONL** file of requests, they process it within **24 hours**, and you get a **50% discount** on the entire run.",
+    },
+    {
+      kind: "p",
+      text: "Let's look at the math for re-indexing **500 million** tokens (approx. **4 million** supply chain documents):",
+    },
+    {
+      kind: "ul",
+      items: [
+        "**Standard API (`text-embedding-3-small`):** **`$0.02`** per 1M tokens = **`$10.00`**",
+        "**Batch API (`text-embedding-3-small`):** **`$0.01`** per 1M tokens = **`$5.00`**",
+      ],
+    },
+    {
+      kind: "p",
+      text: "For embeddings, the savings are nice, but the real financial impact is in **Evaluation Harnesses**.",
+    },
+    {
+      kind: "p",
+      text: "If you are running regression tests across **10,000** production prompts using **Claude 4.7 Sonnet** (at **`$3.00`** input / **`$15.00`** output) to ensure a prompt tweak didn't break extraction:",
+    },
+    {
+      kind: "ul",
+      items: [
+        "**Standard Eval Run:** **`~$300.00`** per run.",
+        "**Batch Eval Run:** **`~$150.00`** per run.",
+      ],
+    },
+    {
+      kind: "p",
+      text: "If your CI/CD pipeline runs these evals **10 times a week**, moving to the Batch API saves you **`$6,000/month`** in testing costs alone.",
+    },
+    { kind: "hr" },
+    {
+      kind: "h2",
+      text: "2. The Dual-Pipeline Architecture",
+    },
+    {
+      kind: "p",
+      text: "You cannot use Batch APIs for everything. When a vendor uploads a *new* invoice, the system needs to embed it instantly so it becomes searchable.",
+    },
+    {
+      kind: "p",
+      text: "You must build a dual-pipeline architecture: a **Fast Path** for streaming ingestion, and a **Slow Path** for backfills and evaluations.",
+    },
+    { kind: "mermaid", code: DUAL_PIPELINE_MERMAID },
+    {
+      kind: "p",
+      text: "**The Slow Path (Batch) Implementation** — batch processing shifts the complexity from the network layer to the file system layer.",
+    },
+    {
+      kind: "ol",
+      items: [
+        "**Generation:** An ECS task queries your primary database, formats the prompts/documents into a `.jsonl` file, and uploads it to the provider.",
+        "**Polling vs. Webhooks:** Never poll the Batch API status. Configure a webhook receiver (similar to the idempotent webhook pattern in Post #4) to listen for the **`batch.completed`** event.",
+        "**Reconciliation:** The provider returns a results `.jsonl` file. Your ECS worker downloads it, maps the **`custom_id`** back to your primary database IDs, and bulk-inserts the vectors.",
+      ],
     },
     {
       kind: "code_block",
-      title: "Partial-retry delta logic (Python -- adapt to your SDK and storage layout)",
-      language: "python",
-      code: `import json
-
-def completed_request_ids(output_jsonl_path: str) -> set[str]:
-    done: set[str] = set()
-    with open(output_jsonl_path, encoding="utf-8") as f:
-        for line in f:
-            if not line.strip():
-                continue
-            rec = json.loads(line)
-            rid = rec.get("custom_id") or rec.get("request_id")
-            if rid and rec.get("error") is None:
-                done.add(rid)
-    return done
-
-
-def filter_delta(input_jsonl_path: str, done: set[str]) -> list[dict]:
-    pending: list[dict] = []
-    with open(input_jsonl_path, encoding="utf-8") as f:
-        for line in f:
-            rec = json.loads(line)
-            rid = rec["custom_id"]
-            if rid not in done:
-                pending.append(rec)
-    return pending
-
-# pending -> write delta_input.jsonl -> submit new batch job
-# with same model + dataset pins (never blind full-file retry)`,
+      language: "typescript",
+      title: "lib/ml/batch-uploader.ts",
+      code: BATCH_UPLOADER_TS,
     },
     {
+      kind: "system_alert",
+      label: "Principal's Note: The custom_id Contract",
+      text:
+        "The most critical part of batch processing is the **`custom_id`**. The LLM provider processes batch lines **out of order**. If you do not pass your database primary key into the **`custom_id`** field, you will have a file full of vectors with absolutely no way to know which document they belong to.",
+    },
+    { kind: "hr" },
+    {
       kind: "h2",
-      text: "Eval harnesses as first-class jobs",
+      text: "3. Eval Harnesses: The CI/CD Integration",
     },
     {
       kind: "p",
-      text: "Offline eval should run on fixed snapshots with pinned models; schedule them like data pipelines with SLAs and ownership. Compare metrics run-over-run; treat variance as a signal that data or prompts drifted before you blame the model.",
+      text: "Evaluation is the most ignored phase of AI engineering. Most teams test a prompt by eye-balling **5** examples in a playground.",
     },
     {
-      kind: "cost_note",
-      label: "FinOps note -- nightly eval harness economics",
-      paragraphs: [
-        "Pinned ~1,000-prompt regression run on Batch nightly: authoring economics ~$15 (Sonnet batch) vs ~$30 (streaming) per run. Delta: ~$15/day -> **~$5,400/year** on testing alone in the toy model. Only valid if your token counts and discount rates match -- still a credible order-of-magnitude for FinOps storytelling.",
-        "**Eval without pins is noise.** Pin `dataset_version` (hash of golden inputs) AND `model_version` in batch metadata. CI should block release if batch eval from pinned snapshot regresses beyond threshold -- the SLA for eval runtime is now a batch SLA.",
-        "**Idempotency keys for vector writes**: use `sha256(document_id + chunk_index)` as the `custom_id` in JSONL. This maps naturally to vector store upsert natural keys and makes delta-resume safe across retries.",
+      kind: "p",
+      text: "To achieve **99.99%** reliability on supply chain extractions, you must treat prompts like code. You need an automated **Eval Harness**.",
+    },
+    {
+      kind: "ol",
+      items: [
+        "**The Golden Dataset:** Curate a static S3 bucket containing **1,000** anonymized, highly complex production inputs and their expected JSON outputs.",
+        "**The PR Trigger:** When an engineer opens a Pull Request modifying a `prompt.txt` file, GitHub Actions triggers an **AWS Step Function**.",
+        "**The Batch Eval:** The Step Function generates a `.jsonl` file combining the *new* prompt with the **1,000** Golden Inputs and submits it to the Batch API.",
+        "**The Grader:** Once the batch completes, a secondary \"Grader Model\" (or a deterministic regex script) compares the Batch output against the Golden Output.",
+        "**The Merge Gate:** If the accuracy drops below **95%**, the GitHub Action fails the PR automatically.",
       ],
-      formula: "batch_eval_annual_savings = (streaming_cost_per_run - batch_cost_per_run) * runs_per_year",
+    },
+    {
+      kind: "p",
+      text: "By using the Batch API for this, a rigorous **1,000**-document regression test runs asynchronously in the background for a fraction of the cost, completely isolated from your production API rate limits.",
+    },
+    { kind: "hr" },
+    {
+      kind: "h2",
+      text: "4. Rate Limiting the Fast Path",
+    },
+    {
+      kind: "p",
+      text: "Even with a Batch pipeline handling the heavy lifting, your Fast Path (real-time streaming) is still vulnerable to localized traffic spikes.",
+    },
+    {
+      kind: "p",
+      text: "If a user uploads a zip file containing **500** PDFs through your UI, you cannot loop through them synchronously in your Express controller.",
+    },
+    {
+      kind: "p",
+      text: "**The Distributed Token Bucket:**",
+    },
+    {
+      kind: "ol",
+      items: [
+        "Push all Fast Path requests to an **SQS FIFO** queue.",
+        "Wrap your Lambda/ECS consumer in a **Redis**-backed token bucket algorithm.",
+        "If the external LLM API returns `429 Too Many Requests`, catch the error, decrement your token bucket capacity, and return the message to SQS using **exponential backoff**.",
+      ],
+    },
+    {
+      kind: "h2",
+      text: "The Pipeline Architecture Checklist",
+    },
+    {
+      kind: "ol",
+      items: [
+        "**Never use the Fast Path for >100 documents.** Hardcode a circuit breaker in your UI/API that forces bulk uploads into the asynchronous Batch queue.",
+        "**Vector DB Upsert Limits:** The LLM provider might return your batch of **4 million** vectors all at once. Do not attempt to write **4 million** vectors to Pinecone/Qdrant in a single `Promise.all`. You must chunk your database writes.",
+        "**Idempotency:** Re-running a failed Batch file should overwrite existing vectors cleanly without duplicating data.",
+      ],
     },
   ],
 };

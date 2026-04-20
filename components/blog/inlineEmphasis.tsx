@@ -33,10 +33,11 @@ function linkLabelForHref(href: string): string {
 const anchorClass =
   "font-medium text-[var(--accent)] underline underline-offset-2 hover:text-[var(--accent-hover)] decoration-[var(--accent)]/50";
 
-/**
- * Turns markdown-style `**phrase**` into bold emphasis. Safe for untrusted-ish CMS strings: no HTML pass-through.
- */
-export function renderBoldSegments(text: string): ReactNode {
+const inlineCodeClass =
+  "font-mono text-[0.88em] sm:text-[0.9em] text-[var(--text)] bg-[var(--surface)] border border-[var(--border-color)] px-1.5 py-0.5 rounded-[2px] whitespace-nowrap";
+
+/** `**phrase**` only (no inline code). */
+function renderBoldOnly(text: string): ReactNode {
   const out: ReactNode[] = [];
   let last = 0;
   let match: RegExpExecArray | null;
@@ -57,6 +58,30 @@ export function renderBoldSegments(text: string): ReactNode {
     out.push(text.slice(last));
   }
   return out.length === 0 ? text : <>{out}</>;
+}
+
+/**
+ * Bold (`**`) and inline code (`` `term` ``) — tactile mono for metrics/API tokens.
+ */
+export function renderBoldSegments(text: string): ReactNode {
+  const pieces = text.split(/(`[^`]+`)/g);
+  if (pieces.length === 1) {
+    return renderBoldOnly(text);
+  }
+  return (
+    <>
+      {pieces.map((piece, i) => {
+        if (piece.startsWith("`") && piece.endsWith("`") && piece.length >= 2) {
+          return (
+            <code key={`c-${i}`} className={inlineCodeClass}>
+              {piece.slice(1, -1)}
+            </code>
+          );
+        }
+        return <Fragment key={`t-${i}`}>{renderBoldOnly(piece)}</Fragment>;
+      })}
+    </>
+  );
 }
 
 /** URL segments become `<a>` with readable labels; other segments get bold parsing. */

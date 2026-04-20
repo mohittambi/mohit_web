@@ -53,6 +53,14 @@ export type BlogSection =
       code: string;
       title?: string;
     }
+  /** Native Mermaid diagram (client-rendered). */
+  | { kind: "mermaid"; code: string }
+  /** “System alert” callout — left accent stripe, tactile borders. */
+  | { kind: "system_alert"; label: string; text: string }
+  | { kind: "ol"; items: string[] }
+  | { kind: "hr" }
+  /** Interactive Lambda vs ECS ingress diagram (blog only). */
+  | { kind: "architecture_toggle"; variant?: "lambda_ecs" }
   | {
       kind: "prompt_example";
       title?: string;
