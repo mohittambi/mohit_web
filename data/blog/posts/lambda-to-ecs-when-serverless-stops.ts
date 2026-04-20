@@ -4,7 +4,7 @@ export const post: BlogPost = {
   slug: "lambda-to-ecs-when-serverless-stops",
   title: "From Lambda to ECS: When Serverless Stops Being the Right Default",
   description:
-    "Cold starts, concurrency ceilings, and VPC complexity push teams toward containers. Here is how to decide—and how to migrate without heroics.",
+    "Cold starts, concurrency ceilings, and VPC complexity push teams toward containers. Here is how to decide -- and how to migrate without heroics.",
   publishedAt: "2026-04-17",
   readTime: "10 min read",
   difficulty: "Deep dive",
@@ -32,7 +32,7 @@ export const post: BlogPost = {
     },
     {
       kind: "p",
-      text: "On Lambda, extensions, agents, and sidecars still run inside your billed execution window—there is a real observability tax in milliseconds and dollars per invocation. On ECS/Fargate, those processes typically share the task’s CPU and memory envelope: you plan one bigger container instead of watching PC units stack next to function duration. Neither is free; the question is which billing shape matches your traffic and how honest you are about tail latency when agents wake up under load.",
+      text: "On Lambda, extensions, agents, and sidecars still run inside your billed execution window -- there is a real observability tax in milliseconds and dollars per invocation. On ECS/Fargate, those processes typically share the task's CPU and memory envelope: you plan one bigger container instead of watching PC units stack next to function duration. Neither is free; the question is which billing shape matches your traffic and how honest you are about tail latency when agents wake up under load.",
     },
     {
       kind: "h2",
@@ -40,7 +40,7 @@ export const post: BlogPost = {
     },
     {
       kind: "p",
-      text: "Per-invocation billing and IAM-scoped blast radius are real advantages. If you move to ECS, recreate boundaries with task roles, service quotas, and autoscaling policies that mirror the blast radius you had per function. Cost attribution should move from “per invocation” to “per task hour plus data transfer”—finance needs the same transparency.",
+      text: "Per-invocation billing and IAM-scoped blast radius are real advantages. If you move to ECS, recreate boundaries with task roles, service quotas, and autoscaling policies that mirror the blast radius you had per function. Cost attribution should move from 'per invocation' to 'per task hour plus data transfer' -- finance needs the same transparency.",
     },
     {
       kind: "h2",

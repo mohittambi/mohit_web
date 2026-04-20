@@ -6,21 +6,21 @@ export const narrativeAppendix: NarrativeAppendix = {
     context:
       "Composite: ~180 engineers; mandated internal PaaS; Kubernetes everywhere narrative.",
     broke:
-      "Time-to-first-deploy for new services ~21 days → ~34 days median after “helpful” centralisation—teams routed around with shadow clusters; senior ICs quietly interviewed out citing YAML-and-ticket fatigue.",
+      "Time-to-first-deploy for new services ~21 days → ~34 days median after 'helpful' centralisation -- teams routed around with shadow clusters; senior ICs quietly interviewed out citing YAML-and-ticket fatigue.",
     wrong_first:
-      "We published a 47-page standards doc before fixing one golden path—adoption flat; cynicism high.",
+      "We published a 47-page standards doc before fixing one golden path -- adoption flat; cynicism high.",
     solution:
-      "One service template (Node + TS) with CI, canary, OTel, IAM patterns baked in—**DevEx** as the product: fewer bespoke YAML paths, faster first deploy; voluntary migration with public TTFD metrics; rotation from product eng so platform does not drift into ticket theatre.",
+      "One service template (Node + TS) with CI, canary, OTel, IAM patterns baked in -- **DevEx** as the product: fewer bespoke YAML paths, faster first deploy; voluntary migration with public TTFD metrics; rotation from product eng so platform does not drift into ticket theatre.",
     tradeoff:
       "We accepted long-tail snowflakes living outside the golden path with guardrails, not pretend elimination.",
   },
   whatNot: [
-    "I would not measure platform success by feature count—measure TTFD, MTTR, and toil tickets burned down.",
-    "I would not staff platform entirely with engineers who have not shipped oncall recently—empathy decays into control.",
+    "I would not measure platform success by feature count -- measure TTFD, MTTR, and toil tickets burned down.",
+    "I would not staff platform entirely with engineers who have not shipped oncall recently -- empathy decays into control.",
   ],
   numbers: [
-    "Golden path: first cohort (~12 teams) cut median TTFD from ~21d → ~4d in ~8 weeks—numbers are illustrative composite, not a guarantee.",
-    "Policy-as-code checks: ~15–25 high-signal rules beat 100+ noisy linter rules that teams mute.",
+    "Golden path: first cohort (~12 teams) cut median TTFD from ~21d → ~4d in ~8 weeks -- numbers are illustrative composite, not a guarantee.",
+    "Policy-as-code checks: ~15 - 25 high-signal rules beat 100+ noisy linter rules that teams mute.",
   ],
   readNextIntro: "If this problem shows up, read next:",
   readNextItems: [

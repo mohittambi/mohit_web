@@ -6,11 +6,11 @@ export const careerArtifacts: CareerArtifacts = {
   strongVisual:
     "Two charts: vanity uptime flat vs user-journey latency tail shrinking after SLI fix.",
   linkedInThread: [
-    "SLIs should survive a whiteboard with product—LB-only success bits are not a user journey.",
+    "SLIs should survive a whiteboard with product -- LB-only success bits are not a user journey.",
     "Exclude bots or bad traffic with a written policy or you are optimising charts, not customers.",
-    "Error budgets are the currency between velocity and stability—publish how spend maps to launches.",
-    "Google SRE — alerting on SLOs (multi-window burn): https://sre.google/sre-book/alerting-on-slos/",
-    `${blogPostUrl("platform-metrics-slis-slos")} — SLIs, SLOs, error budgets leadership can trust.`,
+    "Error budgets are the currency between velocity and stability -- publish how spend maps to launches.",
+    "Google SRE  --  alerting on SLOs (multi-window burn): https://sre.google/sre-book/alerting-on-slos/",
+    `${blogPostUrl("platform-metrics-slis-slos")}  --  SLIs, SLOs, error budgets leadership can trust.`,
     "What SLI made your execs stop rolling their eyes?",
   ],
   diagramBrief: {
@@ -34,11 +34,11 @@ export const careerArtifacts: CareerArtifacts = {
     scale: [
       "Tiered SLOs per customer segment where contracts differ.",
       "Synthetic + RUM combined with known blind spots documented.",
-      "Executive dashboard with three numbers max—discipline.",
+      "Executive dashboard with three numbers max -- discipline.",
     ],
   },
   interview30Sec:
-    "I define SLIs from user journeys, not load balancers, put definitions in version control, and tie error budgets to launch and debt decisions. If the budget does not move when customers complain, the SLI is wrong—not the customers.",
+    "I define SLIs from user journeys, not load balancers, put definitions in version control, and tie error budgets to launch and debt decisions. If the budget does not move when customers complain, the SLI is wrong -- not the customers.",
   cto1Min:
     "Week one I map one critical journey and instrument p99 and success at the edge. Month one I add burn alerts and connect budget policy to roadmap gates. At scale I tier SLOs by customer segment and ruthlessly limit executive dashboards to a few trusted numbers so the org optimises reality, not charts.",
 };

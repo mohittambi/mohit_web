@@ -2,23 +2,23 @@ import type { CareerArtifacts } from "../career-artifacts-types";
 import { blogPostUrl } from "../site";
 
 export const careerArtifacts: CareerArtifacts = {
-  opinionHook: "Streaming first for a greenfield corpus is often resume-driven development—batch usually wins unit economics until freshness SLOs force your hand.",
+  opinionHook: "Streaming first for a greenfield corpus is often resume-driven development -- batch usually wins unit economics until freshness SLOs force your hand.",
   strongVisual:
     "Two timelines: batch checkpoint ladder vs jittery streaming spikes on same y-axis (cost).",
   linkedInThread: [
-    "Batch backfills: checkpoints + idempotent vector writes—or retries duplicate embeddings and poisons nearest-neighbour search.",
-    "Streaming ingest: 2–5s micro-batches usually beat per-save GPU thrash; freshness SLO should pick the window, not hype.",
+    "Batch backfills: checkpoints + idempotent vector writes -- or retries duplicate embeddings and poisons nearest-neighbour search.",
+    "Streaming ingest: 2 - 5s micro-batches usually beat per-save GPU thrash; freshness SLO should pick the window, not hype.",
     "Eval harnesses belong on pinned snapshots; live-write metrics lie the week someone ships a bad chunker.",
     "OpenAI Batch API (when vendor batch fits your pipeline): https://platform.openai.com/docs/guides/batch",
-    `${blogPostUrl("batch-vs-streaming-embeddings")} — batch vs streaming embeddings + eval jobs.`,
+    `${blogPostUrl("batch-vs-streaming-embeddings")}  --  batch vs streaming embeddings + eval jobs.`,
     "Where did streaming first hurt your unit economics?",
   ],
   diagramBrief: {
     title: "Batch checkpoints vs streaming micro-batches",
     elements: [
       "Batch pipeline with checkpoint ticks; retry arrow loops to same offset on failure.",
-      "Streaming bursty line smoothed by 2–5s micro-batch box.",
-      "Eval harness pinned to snapshot hash—X on ‘live only’ eval path.",
+      "Streaming bursty line smoothed by 2 - 5s micro-batch box.",
+      "Eval harness pinned to snapshot hash -- X on 'live only' eval path.",
     ],
   },
   ctoFromScratch: {

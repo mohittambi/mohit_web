@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Logo } from "@/components/ui/Logo";
@@ -17,12 +18,24 @@ const links = [
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const handleAnchor = useCallback((e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    const id = href.replace("/#", "");
+    if (pathname === "/") {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      // Full browser navigation so the browser handles hash scroll after page load
+      globalThis.location.href = href;
+    }
+  }, [pathname]);
 
   return (
     <header
@@ -46,6 +59,7 @@ export function Navbar() {
               <a
                 key={l.href}
                 href={l.href}
+                onClick={(e) => handleAnchor(e, l.href)}
                 className="text-sm text-[var(--muted)] hover:text-[var(--text)] transition-colors"
               >
                 {l.label}
@@ -67,6 +81,7 @@ export function Navbar() {
           <ThemeToggle />
           <a
             href="/#contact"
+            onClick={(e) => handleAnchor(e, "/#contact")}
             className="hidden md:inline-flex items-center h-9 px-4 rounded-md text-sm font-medium bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] transition-colors"
           >
             Schedule a Call
@@ -89,7 +104,7 @@ export function Navbar() {
               <a
                 key={l.href}
                 href={l.href}
-                onClick={() => setOpen(false)}
+                onClick={(e) => { handleAnchor(e, l.href); setOpen(false); }}
                 className="text-sm text-[var(--muted)] hover:text-[var(--text)] transition-colors"
               >
                 {l.label}
@@ -107,7 +122,7 @@ export function Navbar() {
           )}
           <a
             href="/#contact"
-            onClick={() => setOpen(false)}
+            onClick={(e) => { handleAnchor(e, "/#contact"); setOpen(false); }}
             className="inline-flex items-center h-9 px-4 rounded-md text-sm font-medium bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] transition-colors w-fit"
           >
             Schedule a Call

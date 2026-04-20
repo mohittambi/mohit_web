@@ -2,15 +2,15 @@ import type { CareerArtifacts } from "../career-artifacts-types";
 import { blogPostUrl } from "../site";
 
 export const careerArtifacts: CareerArtifacts = {
-  opinionHook: "100% tracing is a vanity metric if nobody can query it during an outage—or pay for it the next quarter.",
+  opinionHook: "100% tracing is a vanity metric if nobody can query it during an outage -- or pay for it the next quarter.",
   strongVisual:
     "Before/after: cardinality explosion chart vs capped attributes + tail sampling policy box.",
   linkedInThread: [
-    "Collector-side drops and attribute trims hit bill + cardinality; modest SDK head sampling saves CPU/egress on hot paths—use both deliberately.",
-    "Tail sampling usually belongs at the collector so policy sees the whole trace—budget memory for the buffer.",
-    "Cardinality is not abstract: one bad attribute can explode billable series—treat allow-lists like API contracts.",
+    "Collector-side drops and attribute trims hit bill + cardinality; modest SDK head sampling saves CPU/egress on hot paths -- use both deliberately.",
+    "Tail sampling usually belongs at the collector so policy sees the whole trace -- budget memory for the buffer.",
+    "Cardinality is not abstract: one bad attribute can explode billable series -- treat allow-lists like API contracts.",
     "OpenTelemetry sampling concepts: https://opentelemetry.io/docs/concepts/signals/traces/#sampling",
-    `${blogPostUrl("opentelemetry-sampling-cost")} — head vs tail, collector vs SDK, retention reality.`,
+    `${blogPostUrl("opentelemetry-sampling-cost")}  --  head vs tail, collector vs SDK, retention reality.`,
     "Which attribute exploded your trace bill?",
   ],
   diagramBrief: {
@@ -18,7 +18,7 @@ export const careerArtifacts: CareerArtifacts = {
     elements: [
       "SDK with small head-sample scissors; agent → collector with bigger scissors (noise, attributes).",
       "Tail sampling buffer box with memory warning; only error/slow pass through fat arrow.",
-      "Backend query path: bottleneck if cardinality high—slash through high-card attributes.",
+      "Backend query path: bottleneck if cardinality high -- slash through high-card attributes.",
     ],
   },
   ctoFromScratch: {
@@ -35,7 +35,7 @@ export const careerArtifacts: CareerArtifacts = {
     scale: [
       "Per-tenant trace budgets if multi-tenant noise dominates.",
       "Federated traces across regions with consistent IDs.",
-      "Vendor evaluation with query SLO and cardinality tests—not feature matrices only.",
+      "Vendor evaluation with query SLO and cardinality tests -- not feature matrices only.",
     ],
   },
   interview30Sec:

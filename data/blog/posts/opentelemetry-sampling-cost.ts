@@ -20,7 +20,7 @@ export const post: BlogPost = {
     },
     {
       kind: "p",
-      text: "**Planned emphasis for this article:** start with **collector-side** drops and transforms when the problem is **bill, cardinality, or backend query latency**—health checks stripped, attributes trimmed, tail policies applied, fan-in before a paid gateway—because that is where noise aggregates across services. Add **SDK-side** (consistent parent-based) head sampling when **application CPU or egress** on the hot path dominates: do not serialise and export spans you already know you will discard. Tail sampling almost always belongs at the **collector** so policy sees the **whole trace**; pair both layers deliberately rather than fixing cost only in the SDK while ignoring the pipeline.",
+      text: "**Planned emphasis for this article:** start with **collector-side** drops and transforms when the problem is **bill, cardinality, or backend query latency** -- health checks stripped, attributes trimmed, tail policies applied, fan-in before a paid gateway -- because that is where noise aggregates across services. Add **SDK-side** (consistent parent-based) head sampling when **application CPU or egress** on the hot path dominates: do not serialise and export spans you already know you will discard. Tail sampling almost always belongs at the **collector** so policy sees the **whole trace**; pair both layers deliberately rather than fixing cost only in the SDK while ignoring the pipeline.",
     },
     {
       kind: "h2",
@@ -36,7 +36,7 @@ export const post: BlogPost = {
     },
     {
       kind: "p",
-      text: "Reserve tail sampling for traces that errored, breached latency SLOs, or match high-value attributes (tenant tier, payment path). Run tail decisions at the collector cluster with bounded memory—unbounded buffering is how you trade log volume for outage volume.",
+      text: "Reserve tail sampling for traces that errored, breached latency SLOs, or match high-value attributes (tenant tier, payment path). Run tail decisions at the collector cluster with bounded memory -- unbounded buffering is how you trade log volume for outage volume.",
     },
     {
       kind: "h2",
@@ -45,7 +45,7 @@ export const post: BlogPost = {
     {
       kind: "ul",
       items: [
-        "Drop health checks and synthetic traffic at the collector (gateway) where possible—before they become billable series.",
+        "Drop health checks and synthetic traffic at the collector (gateway) where possible -- before they become billable series.",
         "Attribute budgets: cap unique values per key in backends that bill by cardinality; trim at collector when SDK cannot see global cardinality.",
         "Retention tiers: hot traces for days, sampled aggregates for months.",
       ],

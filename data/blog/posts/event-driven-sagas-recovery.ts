@@ -24,11 +24,11 @@ export const post: BlogPost = {
     },
     {
       kind: "h2",
-      text: "Timeouts are not errors—they are transitions",
+      text: "Timeouts are not errors -- they are transitions",
     },
     {
       kind: "p",
-      text: "Model each wait state with deadlines and escalation paths. Compensation handlers should be idempotent and safe if they run twice. For irreversible steps, split “request” from “commit” and document which human role can force completion or rollback.",
+      text: "Model each wait state with deadlines and escalation paths. Compensation handlers should be idempotent and safe if they run twice. For irreversible steps, split 'request' from 'commit' and document which human role can force completion or rollback.",
     },
   ],
 };

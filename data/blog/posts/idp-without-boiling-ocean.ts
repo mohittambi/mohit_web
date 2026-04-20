@@ -20,7 +20,7 @@ export const post: BlogPost = {
     },
     {
       kind: "p",
-      text: "Measure **time-to-first-deploy**, **MTTR**, and a lightweight **toil index** (support tickets, pager noise, “how do I wire IAM?” DMs). When those flatline while headcount grows, you are paying retention tax. A golden path that hides Kubernetes unless someone opts in is often cheaper than teaching every product team the entire control plane. Celebrate when teams **delete** bespoke Helm from their services—that is the same signal as revenue in internal platforms.",
+      text: "Measure **time-to-first-deploy**, **MTTR**, and a lightweight **toil index** (support tickets, pager noise, 'how do I wire IAM?' DMs). When those flatline while headcount grows, you are paying retention tax. A golden path that hides Kubernetes unless someone opts in is often cheaper than teaching every product team the entire control plane. Celebrate when teams **delete** bespoke Helm from their services -- that is the same signal as revenue in internal platforms.",
     },
     {
       kind: "h2",
@@ -28,7 +28,7 @@ export const post: BlogPost = {
     },
     {
       kind: "p",
-      text: "Pick one service template: build, test, deploy, observability, and access patterns baked in. Measure time-to-first-deploy and mean time to recovery for teams on the path versus off it. Publish those numbers—adoption follows proof.",
+      text: "Pick one service template: build, test, deploy, observability, and access patterns baked in. Measure time-to-first-deploy and mean time to recovery for teams on the path versus off it. Publish those numbers -- adoption follows proof.",
     },
     {
       kind: "h2",
@@ -44,7 +44,7 @@ export const post: BlogPost = {
     },
     {
       kind: "p",
-      text: "Staff platform squads with engineers who have shipped production services recently. Rotate product engineers through the platform team. Celebrate reductions in bespoke YAML more than raw feature count—the goal is flow, not footprint.",
+      text: "Staff platform squads with engineers who have shipped production services recently. Rotate product engineers through the platform team. Celebrate reductions in bespoke YAML more than raw feature count -- the goal is flow, not footprint.",
     },
   ],
 };

@@ -1,7 +1,7 @@
 /**
- * Power Trio — first three weeks (signal + interview arc):
+ * Power Trio  --  first three weeks (signal + interview arc):
  * Week 1 RAG (market demand), Week 2 Lambda→ECS (principal cost vs complexity), Week 3 DynamoDB (scale architect).
- * Week 4 opens the “tactical core” idempotent webhooks; remaining posts follow.
+ * Week 4 opens the 'tactical core' idempotent webhooks; remaining posts follow.
  */
 export const publishPriorityOrder: string[] = [
   "rag-without-regret",

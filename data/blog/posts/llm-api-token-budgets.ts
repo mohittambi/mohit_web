@@ -28,7 +28,7 @@ export const post: BlogPost = {
     },
     {
       kind: "p",
-      text: "Route by task class: small models for classification and extraction, larger models for synthesis and multi-step reasoning. Cache deterministic sub-results. Re-evaluate routing when pricing or latency curves move—routing tables deserve version control and canary analysis like any other config.",
+      text: "Route by task class: small models for classification and extraction, larger models for synthesis and multi-step reasoning. Cache deterministic sub-results. Re-evaluate routing when pricing or latency curves move -- routing tables deserve version control and canary analysis like any other config.",
     },
   ],
 };

@@ -16,7 +16,7 @@ export const caseStudies: CaseStudy[] = [
     title: "Serverless → Container Migration",
     category: "Platform Architecture",
     problem:
-      "A high-throughput platform was hitting cold-start latency spikes, concurrency throttling under traffic bursts, and escalating costs on always-on workloads — all constraints baked into the serverless model.",
+      "A high-throughput platform was hitting cold-start latency spikes, concurrency throttling under traffic bursts, and escalating costs on always-on workloads  --  all constraints baked into the serverless model.",
     constraints: [
       "Zero-downtime migration with no client-side changes",
       "Real-time WebSocket connections requiring persistent state",
@@ -50,7 +50,7 @@ export const caseStudies: CaseStudy[] = [
     title: "Financial Reconciliation Engine",
     category: "Reliability Engineering",
     problem:
-      "Wallet transactions processed across distributed services created consistency gaps during network failures, retries, and partial commits — leading to balance drift that compounded over time.",
+      "Wallet transactions processed across distributed services created consistency gaps during network failures, retries, and partial commits  --  leading to balance drift that compounded over time.",
     constraints: [
       "Exact-once processing guarantee across distributed services",
       "Sub-second reconciliation for real-time balance accuracy",
@@ -103,7 +103,7 @@ export const caseStudies: CaseStudy[] = [
     outcomes: [
       "Sustained 10× spike traffic with zero data loss",
       "Pipeline uptime improved to 99.97%",
-      "Downstream consumer failures isolated — no cascading impact",
+      "Downstream consumer failures isolated  --  no cascading impact",
       "Mean time to detect pipeline issues dropped by 70%",
     ],
     accentColor: "#f59e0b",

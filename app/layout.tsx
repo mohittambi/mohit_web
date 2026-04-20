@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import "katex/dist/katex.min.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { CONTACT_PHONE_E164, CONTACT_EMAIL } from "@/data/blog/site";
+import { CopyGuard } from "@/components/ui/CopyGuard";
 
 const display = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -145,6 +147,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-background text-foreground antialiased font-sans">
         <ThemeProvider>
+          <CopyGuard />
           <Navbar />
           <main id="main-content">{children}</main>
           <Footer />

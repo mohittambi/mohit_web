@@ -67,6 +67,8 @@ html {
 }
 
 body {
+  -webkit-user-select: none;
+  user-select: none;
   background-color: var(--bg);
   color: var(--text);
   font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
@@ -154,6 +156,23 @@ body {
 *:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
+}
+
+input, textarea, select, [contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* shiki dual-theme — light uses github-light, dark uses github-dark */
+.shiki-block .shiki,
+.shiki-block .shiki span {
+  color: var(--shiki-light) !important;
+  background-color: var(--shiki-light-bg) !important;
+}
+.dark .shiki-block .shiki,
+.dark .shiki-block .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

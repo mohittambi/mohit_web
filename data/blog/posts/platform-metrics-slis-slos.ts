@@ -4,7 +4,7 @@ export const post: BlogPost = {
   slug: "platform-metrics-slis-slos",
   title: "Platform Metrics That Leadership Actually Trust: SLIs, SLOs, and Error Budgets",
   description:
-    "Connecting user-perceived reliability to metrics executives can reason about—and budgets that change behaviour.",
+    "Connecting user-perceived reliability to metrics executives can reason about -- and budgets that change behaviour.",
   publishedAt: "2026-04-08",
   readTime: "8 min read",
   difficulty: "Intermediate",
@@ -22,7 +22,7 @@ export const post: BlogPost = {
       kind: "ul",
       items: [
         "Measure from the edge or client where possible, not only inside the happy VPC path.",
-        "Exclude known bad clients only with written policy—otherwise you are optimising dashboards, not experience.",
+        "Exclude known bad clients only with written policy -- otherwise you are optimising dashboards, not experience.",
         "Keep SLI definitions in version control with change history.",
       ],
     },

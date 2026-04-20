@@ -12,7 +12,7 @@ export const post: BlogPost = {
   sections: [
     {
       kind: "p",
-      text: "Providers retry. Networks reorder. Your handler will see the same logical event more than once. Idempotency is not a header decoration—it is a durable record of what you have already accepted and what side effects you have already committed.",
+      text: "Providers retry. Networks reorder. Your handler will see the same logical event more than once. Idempotency is not a header decoration -- it is a durable record of what you have already accepted and what side effects you have already committed.",
     },
     {
       kind: "h2",
@@ -28,7 +28,7 @@ export const post: BlogPost = {
     },
     {
       kind: "p",
-      text: "When upstream omits a stable id, derive one deterministically: canonicalise JSON (sorted keys, normalised numbers, strip volatile fields like received_at or trace ids that differ per delivery), then hash with a standard algorithm (for example SHA-256) and prefix with a namespace. Collisions mean your canonicalisation lied—replay historical payloads through the function in CI and assert id stability. Two different business events must never collapse to the same key; two retries of the same event must always collapse to the same key.",
+      text: "When upstream omits a stable id, derive one deterministically: canonicalise JSON (sorted keys, normalised numbers, strip volatile fields like received_at or trace ids that differ per delivery), then hash with a standard algorithm (for example SHA-256) and prefix with a namespace. Collisions mean your canonicalisation lied -- replay historical payloads through the function in CI and assert id stability. Two different business events must never collapse to the same key; two retries of the same event must always collapse to the same key.",
     },
     {
       kind: "ul",
@@ -52,7 +52,7 @@ export const post: BlogPost = {
     },
     {
       kind: "p",
-      text: "Dead-letter queues are where optimism goes to die—give them dashboards, owner runbooks, and replay tooling that preserves ordering constraints where they matter. Poison messages should fail closed: alert, sample payloads safely, and cap retries so a bad vendor does not starve the fleet.",
+      text: "Dead-letter queues are where optimism goes to die -- give them dashboards, owner runbooks, and replay tooling that preserves ordering constraints where they matter. Poison messages should fail closed: alert, sample payloads safely, and cap retries so a bad vendor does not starve the fleet.",
     },
   ],
 };

@@ -4,7 +4,7 @@ export const post: BlogPost = {
   slug: "context-windows-caching-sessions",
   title: "Context Windows Are Not a Database: Caching, Summarisation, and Long-Session Retention",
   description:
-    "Why stuffing everything into the prompt fails—and patterns for durable session state outside the model.",
+    "Why stuffing everything into the prompt fails -- and patterns for durable session state outside the model.",
   publishedAt: "2026-04-12",
   readTime: "9 min read",
   difficulty: "Intermediate",
@@ -20,7 +20,7 @@ export const post: BlogPost = {
     },
     {
       kind: "p",
-      text: "Store user preferences, application state, and retrieved documents in your own stores with clear TTLs and schema. Pass only what the next turn needs—summaries plus pointers to fuller records beat megabyte transcripts.",
+      text: "Store user preferences, application state, and retrieved documents in your own stores with clear TTLs and schema. Pass only what the next turn needs -- summaries plus pointers to fuller records beat megabyte transcripts.",
     },
     {
       kind: "h2",

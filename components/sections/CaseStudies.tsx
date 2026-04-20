@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp, ArrowUpRight } from "lucide-react";
 import { caseStudies } from "@/data/caseStudies";
 import { Badge } from "@/components/ui/Badge";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { CASE_DIAGRAMS } from "./CaseDiagrams";
 
 export function CaseStudies() {
   const [expanded, setExpanded] = useState<string | null>("lambda-to-ecs");
@@ -125,6 +126,12 @@ export function CaseStudies() {
                                 ))}
                               </div>
                             </div>
+
+                            {/* Architecture diagram */}
+                            {(() => {
+                              const Diagram = CASE_DIAGRAMS[cs.id];
+                              return Diagram ? <Diagram /> : null;
+                            })()}
                           </div>
 
                           {/* Outcomes */}

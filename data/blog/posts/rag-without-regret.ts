@@ -20,13 +20,13 @@ export const post: BlogPost = {
     },
     {
       kind: "p",
-      text: "Fixed token windows are easy to implement and hard to defend. Structure-aware chunking—by heading, section, or logical record—usually beats naive overlap for factual Q&A. When documents are tables or logs, prefer row- or event-sized units with a small amount of trailing context so the model sees column names or field meanings.",
+      text: "Fixed token windows are easy to implement and hard to defend. Structure-aware chunking -- by heading, section, or logical record -- usually beats naive overlap for factual Q&A. When documents are tables or logs, prefer row- or event-sized units with a small amount of trailing context so the model sees column names or field meanings.",
     },
     {
       kind: "ul",
       items: [
         "Measure chunk entropy and median length; huge variance often means your splitter is fighting the document format.",
-        "Keep one clear “owner” of a fact per chunk where possible; duplicate facts across chunks only when ambiguity is intentional.",
+        "Keep one clear 'owner' of a fact per chunk where possible; duplicate facts across chunks only when ambiguity is intentional.",
         "Version your chunking rules with your index so you can replay ingestion when the strategy changes.",
       ],
     },
@@ -36,7 +36,7 @@ export const post: BlogPost = {
     },
     {
       kind: "p",
-      text: "Do not just store text—store provenance you can defend: source document id, URI or object key, page or byte span, section heading path, ingest job id, chunker semver, and a content hash. When a user or auditor asks “why did the model say this on Tuesday?”, the answer should be a join, not a shrug. That metadata also powers safe re-embeds: you know exactly which rows to invalidate when a PDF is replaced.",
+      text: "Do not just store text -- store provenance you can defend: source document id, URI or object key, page or byte span, section heading path, ingest job id, chunker semver, and a content hash. When a user or auditor asks 'why did the model say this on Tuesday?', the answer should be a join, not a shrug. That metadata also powers safe re-embeds: you know exactly which rows to invalidate when a PDF is replaced.",
     },
     {
       kind: "h2",
@@ -49,7 +49,7 @@ export const post: BlogPost = {
     {
       kind: "ul",
       items: [
-        "Golden queries should assert both “correct doc id” and “correct span within doc” for structured codes.",
+        "Golden queries should assert both 'correct doc id' and 'correct span within doc' for structured codes.",
         "If MRR looks good but humans report misses, compare child-hit vs parent-hydration failure rates before touching temperature.",
         "Cap parent expansion by token budget with a deterministic truncation order (headings first, then body).",
       ],
@@ -60,7 +60,7 @@ export const post: BlogPost = {
     },
     {
       kind: "p",
-      text: "Dense retrieval is cheap at scale but brittle when users ask with jargon, typos, or cross-lingual phrasing. I treat hybrid BM25+vector as overrated as a default for typical SaaS docs and runbooks: lexical variance is often too low to justify the index and ops complexity. Where I have seen hybrid pay is high lexical variance—legal citations, SKU-heavy catalogues, mixed-language support corpora—after we proved lift on a frozen production query set. Otherwise I reach for a small reranker on top-k vectors first; it is usually cheaper to ship and easier to reason about than dual-index sprawl.",
+      text: "Dense retrieval is cheap at scale but brittle when users ask with jargon, typos, or cross-lingual phrasing. I treat hybrid BM25+vector as overrated as a default for typical SaaS docs and runbooks: lexical variance is often too low to justify the index and ops complexity. Where I have seen hybrid pay is high lexical variance -- legal citations, SKU-heavy catalogues, mixed-language support corpora -- after we proved lift on a frozen production query set. Otherwise I reach for a small reranker on top-k vectors first; it is usually cheaper to ship and easier to reason about than dual-index sprawl.",
     },
     {
       kind: "h2",
@@ -68,11 +68,11 @@ export const post: BlogPost = {
     },
     {
       kind: "p",
-      text: "Golden sets of (query, expected doc ids or spans) are the minimum. Layer on adversarial queries: negations, multi-hop paraphrases, and time-bounded questions if your data is temporal. Track precision@k, MRR, and calibrated abstention—when nothing is relevant, the system should say so instead of hallucinating a confident answer.",
+      text: "Golden sets of (query, expected doc ids or spans) are the minimum. Layer on adversarial queries: negations, multi-hop paraphrases, and time-bounded questions if your data is temporal. Track precision@k, MRR, and calibrated abstention -- when nothing is relevant, the system should say so instead of hallucinating a confident answer.",
     },
     {
       kind: "p",
-      text: "Treat ingestion, embedding, and index refresh as part of the release train. RAG without regret means you can change chunking or models, re-embed, and prove—with numbers—that users are not worse off than last week.",
+      text: "Treat ingestion, embedding, and index refresh as part of the release train. RAG without regret means you can change chunking or models, re-embed, and prove -- with numbers -- that users are not worse off than last week.",
     },
   ],
 };

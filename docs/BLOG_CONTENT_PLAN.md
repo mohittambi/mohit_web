@@ -323,6 +323,8 @@ RAG fails more often at the **retrieval and chunking** layer than at the LLM—*
 
 **Path:** `/blog/lambda-to-ecs-when-serverless-stops`
 
+**Regional FinOps research (Mumbai / `ap-south-1`, NAT, crossover math):** [`docs/blog-research/post-02-lambda-ecs-ap-south-1-finops.md`](./blog-research/post-02-lambda-ecs-ap-south-1-finops.md) — index: [`docs/blog-research/README.md`](./blog-research/README.md).
+
 ### Detailed review
 
 This is a **decision and migration** piece, not anti-Lambda. Readers want **signals** (cold start, concurrency, VPC, package size, observability sidecars), a **cost framing** that includes **ops burden and DevEx**—moving to ECS/Fargate adds **Dockerization, task definitions, and release discipline** that Lambda had abstracted; price that honestly against infra line items. Include a **migration** pattern (strangler, feature flags, rollback). Avoid treating ECS as “always better”; emphasise **blast radius** and **team skill** parity.
@@ -357,6 +359,8 @@ This is a **decision and migration** piece, not anti-Lambda. Readers want **sign
 ## 3. Designing Idempotent Webhooks at Scale: Outboxes, Dedupe Keys, and DLQs
 
 **Path:** `/blog/idempotent-webhooks-outboxes-dlq`
+
+**Regional storage & WRU research (Mumbai / `ap-south-1`, outbox vs Streams+TTL, IA):** [`docs/blog-research/post-03-idempotent-webhooks-ap-south-1-dynamodb.md`](./blog-research/post-03-idempotent-webhooks-ap-south-1-dynamodb.md) — index: [`docs/blog-research/README.md`](./blog-research/README.md).
 
 ### Detailed review
 
@@ -393,6 +397,8 @@ Webhooks are **at-least-once**. The post must make **idempotency keys**, **stora
 ## 4. OpenTelemetry in Production: Sampling Strategies That Do Not Drown You in Cost
 
 **Path:** `/blog/opentelemetry-sampling-cost`
+
+**Regional observability bill (Mumbai / `ap-south-1`, ingestion vs retention, vendors, cross-AZ):** [`docs/blog-research/post-04-opentelemetry-ap-south-1-observability-bill.md`](./blog-research/post-04-opentelemetry-ap-south-1-observability-bill.md) — index: [`docs/blog-research/README.md`](./blog-research/README.md).
 
 ### Detailed review
 
@@ -433,6 +439,8 @@ Readers need **head vs tail** sampling, **collector** role, cardinality discipli
 
 **Path:** `/blog/prompt-engineering-for-engineers`
 
+**Few-shot unit economics, token math, prompt drift, fine-tune framing:** [`docs/blog-research/post-05-prompt-engineering-few-shot-unit-economics.md`](./blog-research/post-05-prompt-engineering-few-shot-unit-economics.md) — index: [`docs/blog-research/README.md`](./blog-research/README.md).
+
 ### Detailed review
 
 Position prompts as **interfaces**: schemas (JSON, tools), validators, **few-shot** ordering, and **eval harnesses** in CI. Cover model upgrades: pin vs float, regression drift, temperature choices per task class. Humanisation: “what broke when we upgraded the model.” With **AWS Bedrock**, call out **model-agnostic** task specs vs **model-specific** adapters (e.g. Claude-friendly sectioning / XML-style delimiters vs Llama-style instruction headers and stop behaviour).
@@ -467,6 +475,8 @@ Position prompts as **interfaces**: schemas (JSON, tools), validators, **few-sho
 
 **Path:** `/blog/llm-api-token-budgets`
 
+**Model routing unit economics, tagging blueprint, Mumbai/DTO, dashboards:** [`docs/blog-research/post-06-llm-api-token-budgets-routing-finops.md`](./blog-research/post-06-llm-api-token-budgets-routing-finops.md) — index: [`docs/blog-research/README.md`](./blog-research/README.md).
+
 ### Detailed review
 
 This is **FinOps + product** for LLMs: tagging (`feature`, `tenant`, `workflow_id`), soft/hard caps, routing tables, caching strategy, and dashboards leadership trusts. Include ethical note: do not hide degradation from users without UX copy.
@@ -499,6 +509,8 @@ This is **FinOps + product** for LLMs: tagging (`feature`, `tenant`, `workflow_i
 ## 7. Context Windows Are Not a Database: Caching, Summarisation, and Long-Session Retention
 
 **Path:** `/blog/context-windows-caching-sessions`
+
+**Context leak math, Gemini cliffs & hourly cache vs Claude TTL cache, Post 6 tie-in:** [`docs/blog-research/post-07-context-windows-cache-economics.md`](./blog-research/post-07-context-windows-cache-economics.md) — index: [`docs/blog-research/README.md`](./blog-research/README.md).
 
 ### Detailed review
 
@@ -533,6 +545,8 @@ Attack the anti-pattern: **megabyte transcripts** as source of truth. Promote ex
 
 **Path:** `/blog/batch-vs-streaming-embeddings`
 
+**First-time batch/cache-write tax, checkpointing, eval Batch savings:** [`docs/blog-research/post-08-batch-streaming-backfill-economics.md`](./blog-research/post-08-batch-streaming-backfill-economics.md) — index: [`docs/blog-research/README.md`](./blog-research/README.md).
+
 ### Detailed review
 
 Contrast **throughput backfills** vs **near-real-time** ingestion; idempotency; checkpointing; eval harness as a scheduled job with **pinned** datasets and models. Connect to cost and staleness SLOs.
@@ -563,6 +577,8 @@ Contrast **throughput backfills** vs **near-real-time** ingestion; idempotency; 
 ## 9. DynamoDB Hot Partitions: Patterns That Actually Work Under Write Spikes
 
 **Path:** `/blog/dynamodb-hot-partitions`
+
+**100k RPS wall, sharding math, scatter-gather tax, Warm Throughput (verify):** [`docs/blog-research/post-09-dynamodb-hot-partitions-100k-rps-wall.md`](./blog-research/post-09-dynamodb-hot-partitions-100k-rps-wall.md) — index: [`docs/blog-research/README.md`](./blog-research/README.md).
 
 ### Detailed review
 
@@ -631,6 +647,8 @@ Cover **choreography vs orchestration**, saga state persistence, **compensating 
 
 **Path:** `/blog/platform-metrics-slis-slos`
 
+**Fourth nine economics, Mumbai vs multi-region $, RaR, composite availability:** [`docs/blog-research/post-11-platform-metrics-fourth-nine-economics.md`](./blog-research/post-11-platform-metrics-fourth-nine-economics.md) — index: [`docs/blog-research/README.md`](./blog-research/README.md).
+
 ### Detailed review
 
 Bridge **user-perceived** reliability to **SLIs**, then **SLOs** and **error budgets** as negotiation tools. Address cynicism: vanity metrics, excluding bad traffic dishonestly, multi-window burn rates at a high level. Tie to engineering decisions: freeze features, invest in toil reduction.
@@ -663,6 +681,8 @@ Bridge **user-perceived** reliability to **SLIs**, then **SLOs** and **error bud
 ## 12. Building an Internal Developer Platform Without Boiling the Ocean
 
 **Path:** `/blog/idp-without-boiling-ocean`
+
+**IDP TCO, India headcount bands, buy vs build, TTFD, 90-day MVP:** [`docs/blog-research/post-12-idp-tco-paving-the-road.md`](./blog-research/post-12-idp-tco-paving-the-road.md) — index: [`docs/blog-research/README.md`](./blog-research/README.md).
 
 ### Detailed review
 

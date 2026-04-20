@@ -69,3 +69,24 @@ export function getAllBlogSlugs(): string[] {
 export function getBlogPostsForListing(): BlogPost[] {
   return sortBlogPostsByPublishPriority(blogPosts);
 }
+
+export function getAdjacentAndRecommended(slug: string): {
+  prev: BlogPost | null;
+  next: BlogPost | null;
+  recommended: BlogPost[];
+} {
+  const ordered = sortBlogPostsByPublishPriority(blogPosts);
+  const idx = ordered.findIndex((p) => p.slug === slug);
+  const prev = idx > 0 ? ordered[idx - 1] ?? null : null;
+  const next = idx < ordered.length - 1 ? ordered[idx + 1] ?? null : null;
+  const current = ordered[idx];
+  const currentTags = new Set(current?.tags ?? []);
+  const excluded = new Set([slug, prev?.slug, next?.slug].filter(Boolean) as string[]);
+  const recommended = ordered
+    .filter((p) => !excluded.has(p.slug))
+    .map((p) => ({ post: p, overlap: p.tags.filter((t) => currentTags.has(t)).length }))
+    .sort((a, b) => b.overlap - a.overlap)
+    .slice(0, 3)
+    .map((x) => x.post);
+  return { prev, next, recommended };
+}

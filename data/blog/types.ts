@@ -28,6 +28,37 @@ export type BlogSection =
       kind: "further_reading";
       intro: string;
       items: ReadonlyArray<{ title: string; href: string; context: string }>;
+    }
+  | {
+      kind: "cost_note";
+      label?: string;
+      paragraphs: string[];
+      formula?: string;
+    }
+  | {
+      kind: "region_note";
+      region?: string;
+      paragraphs: string[];
+    }
+  | {
+      kind: "cost_table";
+      title: string;
+      headers: string[];
+      rows: string[][];
+      note?: string;
+    }
+  | {
+      kind: "code_block";
+      language: string;
+      code: string;
+      title?: string;
+    }
+  | {
+      kind: "prompt_example";
+      title?: string;
+      before?: { label?: string; code: string; language?: string };
+      after: { label?: string; code: string; language?: string };
+      note?: string;
     };
 
 export interface BlogPost {

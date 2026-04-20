@@ -103,7 +103,7 @@ export function Writing() {
             href="/blog"
             className="inline-flex items-center gap-2 text-sm font-medium text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors"
           >
-            Blog page and backlog <ArrowUpRight size={14} />
+            View all 12 posts <ArrowUpRight size={14} />
           </Link>
           <a
             href="https://medium.com/@er.mohittambi"
