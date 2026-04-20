@@ -59,6 +59,8 @@ export default async function BlogPostPage({ params }: Props) {
     <>
       <ReadingProgress />
 
+      {/* Single read-aloud root: hero + body + TOC (see docs/read-aloud/PLAN_WITH_PHASE_VALIDATION.md) */}
+      <div data-read-aloud>
       {/* Hero header */}
       <div className="hero-gradient pt-24 pb-12 px-6">
         <div className="max-w-3xl mx-auto">
@@ -109,7 +111,7 @@ export default async function BlogPostPage({ params }: Props) {
       {/* Body + TOC */}
       <div className="px-6 pb-24 pt-12">
         <div className="max-w-6xl mx-auto flex items-start gap-0">
-          <article className="flex-1 min-w-0 max-w-3xl relative" data-read-aloud>
+          <article className="flex-1 min-w-0 max-w-3xl relative">
             <SelectionToolbar postUrl={postUrl} postTitle={post.title} />
             <BlogPostBody sections={post.sections} />
             <div className="mt-16">
@@ -120,6 +122,7 @@ export default async function BlogPostPage({ params }: Props) {
 
           <BlogTOC headings={headings} />
         </div>
+      </div>
       </div>
     </>
   );

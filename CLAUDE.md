@@ -34,6 +34,7 @@ app/
   page.tsx            Composes all 9 sections in order
   globals.css         Tailwind v4 @theme, design tokens, marquee keyframes
   docs/THEME.md       Colours, fonts, dark mode, token checklist
+  docs/read-aloud/    Blog read aloud: phased impl + validation (`README.md`)
 
 components/
   layout/
